@@ -180,21 +180,6 @@
           
             <li>
     <ul class="subnav">
-    <li><span>Tools</span></li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../tools/mesher-cgal/">CGAL Meshing (mesher-cgal)</a>
-        
-    </li>
-
-        
-    </ul>
-<li>
-          
-            <li>
-    <ul class="subnav">
     <li><span>Docker Workflows</span></li>
 
         
@@ -215,126 +200,6 @@
             
     <li class="toctree-l1 ">
         <a class="" href="../docker/fenics/">FEniCS Family</a>
-        
-    </li>
-
-        
-    </ul>
-<li>
-          
-            <li>
-    <ul class="subnav">
-    <li><span>GSSF</span></li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/overview/">Overview</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/go-smart-launcher/">go-smart-launcher</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/xml/">GSSF XML Format</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/family/">Family in GSSA</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/logging/">Logging &amp; Errors</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/constants/">Constants</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/regions/">Regions &amp; Geometry</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/needle-library/">Needle Library Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/mesher/">Meshing Components</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/optimizer/">Optimizer Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/elmergrid/">ElmerGrid Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/elmer/">ElmerSolver Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/lesion/">Lesion Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/validation/">Validation Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/numa-elmer/">Extensions to Elmer</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../gssf/utilities/">Utilities</a>
         
     </li>
 
@@ -383,9 +248,9 @@ system. This comprises a pair: a subclass of <code>gssa.family.Family</code>
 that contains instructions for interpreting <a href="../gssa-xml/">GSSA-XML</a> for this
 type of simulation and writing any necessary tool-specific configuration files,
 and the simulation tools themselves.</p>
-<p>Two examples are <a href="../gssf/overview/">GSSF</a>, which is also a fully fledged
+<p>Two examples are <a href="https://go-smart.github.io/gssf/overview/">GSSF</a>, which is also a fully fledged
 workflow, and <a href="../docker/fenics/">FEniCS</a>, which depends on pre-meshing by
-the <a href="../gssf/mesher/">GSSF CGAL mesher component</a>.</p>
+the <a href="https://go-smart.github.io/gssf/mesher/">GSSF CGAL mesher component</a>.</p>
 <p>To find families, the <code>gssa.family</code> module scans for files in the directory of
 the <code>gssa.families</code> module. <strong>TODO</strong>: extend this to user-configurable locations.</p>
 <p><strong>Note</strong>: family modules are run as part of the Python server - this means they

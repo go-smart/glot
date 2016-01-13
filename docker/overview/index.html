@@ -173,21 +173,6 @@
           
             <li>
     <ul class="subnav">
-    <li><span>Tools</span></li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../tools/mesher-cgal/">CGAL Meshing (mesher-cgal)</a>
-        
-    </li>
-
-        
-    </ul>
-<li>
-          
-            <li>
-    <ul class="subnav">
     <li><span>Docker Workflows</span></li>
 
         
@@ -219,126 +204,6 @@
             
     <li class="toctree-l1 ">
         <a class="" href="../fenics/">FEniCS Family</a>
-        
-    </li>
-
-        
-    </ul>
-<li>
-          
-            <li>
-    <ul class="subnav">
-    <li><span>GSSF</span></li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/overview/">Overview</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/go-smart-launcher/">go-smart-launcher</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/xml/">GSSF XML Format</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/family/">Family in GSSA</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/logging/">Logging &amp; Errors</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/constants/">Constants</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/regions/">Regions &amp; Geometry</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/needle-library/">Needle Library Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/mesher/">Meshing Components</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/optimizer/">Optimizer Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/elmergrid/">ElmerGrid Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/elmer/">ElmerSolver Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/lesion/">Lesion Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/validation/">Validation Component</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/numa-elmer/">Extensions to Elmer</a>
-        
-    </li>
-
-        
-            
-    <li class="toctree-l1 ">
-        <a class="" href="../../gssf/utilities/">Utilities</a>
         
     </li>
 
@@ -386,7 +251,7 @@
 <p>This workflow consists of a per-<a href="../../families/">family</a> Python module setting up
 configuration and a solver wrapped in a Docker image. Strictly, there are
 currently two Docker workflows: one entirely inside Docker and one using
-<a href="../../gssf/mesher/">GSSF</a> volumetric meshing prior to running a Docker instance.</p>
+<a href="https://go-smart.github.io/gssf/mesher">GSSF</a> volumetric meshing prior to running a Docker instance.</p>
 <h2 id="definition">Definition</h2>
 <p>Definitions for families in this workflow should include a <code>start.py</code> file. This
 will be called with Python2 (TODO: Python3) in an environment containing the
@@ -396,12 +261,12 @@ will be called with Python2 (TODO: Python3) in an environment containing the
 <p>Any volumetric meshing must take place inside the Docker instance. This means
 that the image must contain both a solver and a mesher (if meshing is required).</p>
 <h3 id="dockercgal-workflow">Docker+CGAL Workflow</h3>
-<p>This hybrid scheme configures the <a href="../../gssf/mesher/">GSSF mesher</a> as would be the
-case in <a href="../../gssf/overview/">GSSF</a>, but stops after the volumetric
-(<a href="../../tools/mesher-cgal/">CGAL</a>) meshing step. This <a href="http://gmsh.info">MSH</a> file is
+<p>This hybrid scheme configures the <a href="https://go-smart.github.io/gssf/mesher/">GSSF mesher</a> as would be the
+case in <a href="https://go-smart.github.io/gssf/overview/">GSSF</a>, but stops after the volumetric
+(<a href="https://go-smart.github.io/gssf/tools/mesher-cgal/">CGAL</a>) meshing step. This <a href="http://gmsh.info">MSH</a> file is
 provided as input to a simulation-only Docker instance. Combining these is
 achieved by use of a family mixin, a module that generates only
-<a href="../../gssf/mesher/">mesher-cgal</a> relevant parts of <a href="../../gssf/xml/">GSSF-XML</a>,
+<a href="https://go-smart.github.io/gssf/mesher/">mesher-cgal</a> relevant parts of <a href="https://go-smart.github.io/gssf/xml/">GSSF-XML</a>,
 <code>gssa.families.mesher_gssf.MesherGSSFMixin</code>.
 This is included into, for instance, <code>gssa.families.fenics.FenicsFamily</code>. (In
 fact, the same mix-in is used by GSSF itself for meshing configuration).</p>
@@ -415,7 +280,7 @@ fact, the same mix-in is used by GSSF itself for meshing configuration).</p>
         <a href="../container-module/" class="btn btn-neutral float-right" title="Python Container Module"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../../tools/mesher-cgal/" class="btn btn-neutral" title="CGAL Meshing (mesher-cgal)"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../server/transferrers/" class="btn btn-neutral" title="Transferrers"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -441,7 +306,7 @@ fact, the same mix-in is used by GSSF itself for meshing configuration).</p>
     <span class="rst-current-version" data-toggle="rst-current-version">
       
       
-        <span><a href="../../tools/mesher-cgal/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+        <span><a href="../../server/transferrers/" style="color: #fcfcfc;">&laquo; Previous</a></span>
       
       
         <span style="margin-left: 15px"><a href="../container-module/" style="color: #fcfcfc">Next &raquo;</a></span>
