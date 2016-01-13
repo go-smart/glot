@@ -34,7 +34,7 @@ etc_location = '{1}'
 # loaded from configuration files ultimately
 setup(name='Go-Smart Simulation',
       version='${PACKAGE_VERSION}',
-      packages=['gssf', 'gssf', 'gssf.comparator', 'gssa', 'gssa.families', 'gosmart_sf_config'],
+      packages=['gssa.comparator', 'gssa', 'gssa.families', 'gosmart_sf_config'],
       package_dir={'gssa': '${CMAKE_CURRENT_SOURCE_DIR}/src/gssa', 'gosmart_sf_config': config_directory},
 
       description='Wrapper for Go-Smart Simulation Architecture',
