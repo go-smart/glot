@@ -2,7 +2,6 @@
 
 # Originally, certain libraries were not available as Python3 (PythonOCC, in particular),
 # so we need to have a Python2 component
-find_program(PYTHON2 "python2")
 find_program(PYTHON3 "python3")
 
 # TODO: error out (sensibly & consistently) if no Py3: the user is not going to get much further
@@ -32,25 +31,4 @@ if (PYTHON3)
     # On install, run setup.py [install]
     install(CODE "execute_process(COMMAND ${PYTHON3} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/conf/vigilant.cfg DESTINATION ${ETC_LOCATION} COMPONENT config)
-endif()
-
-# TODO: at least provide a useful warning or error out if truly essential
-if (PYTHON2)
-    # As in the Python3 case
-    set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup2.py.in")
-    set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup2.py")
-    set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/scripts2/go-smart-preprocessor")
-    set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp2")
-
-    configure_file(${SETUP_PY_IN} ${SETUP_PY})
-
-    add_custom_command(OUTPUT ${OUTPUT}
-                       COMMAND ${PYTHON2} ${SETUP_PY} build
-                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                       DEPENDS ${DEPS})
-
-    # Different target name required than for Python3, still added to ALL
-    add_custom_target(target2 ALL DEPENDS ${OUTPUT})
-
-    install(CODE "execute_process(COMMAND ${PYTHON2} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
 endif()
