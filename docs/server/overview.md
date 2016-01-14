@@ -18,7 +18,7 @@ notifications. Any client permitted on the WAMP router may manipulate it, so
 protection should be put in accordingly, especially until access control is
 established here.
 
-As with [GSSF](../gssf/logging.md#statistics-monitoring), the GSSA server will
+As with [GSSF](https://go-smart.github.io/gssf/logging/#statistics-monitoring), the GSSA server will
 register with [vigilant](https://github.com/redbrain/vigilant) if it finds it.
 However, this has not been fully tested, and is not part of our current use case;
 it will be more extensively documented when proved reliable.

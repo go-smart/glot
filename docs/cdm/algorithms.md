@@ -24,7 +24,7 @@ as follows:
 
 The `ALGORITHMDEFINITION` may be defined in any language the simulation family
 will understand (or, more accurately, the ultimate third-party simulation tool).
-Examples include MATC (for [GSSF](../gssf/overview.md)) and Python (for
+Examples include MATC (for [GSSF](https://go-smart.github.io/gssf/overview/)) and Python (for
 [FEniCS](../docker/fenics.md)). The `RESULT` is conventionally an upper-case,
 underscore-spaced slug that can be used in place of a conventional "constant"
 parameter. Arguments are specified solely by name, not type (as we do not even

@@ -9,9 +9,9 @@ that contains instructions for interpreting [GSSA-XML](gssa-xml.md) for this
 type of simulation and writing any necessary tool-specific configuration files,
 and the simulation tools themselves.
 
-Two examples are [GSSF](gssf/overview.md), which is also a fully fledged
+Two examples are [GSSF](https://go-smart.github.io/gssf/overview/), which is also a fully fledged
 workflow, and [FEniCS](docker/fenics.md), which depends on pre-meshing by
-the [GSSF CGAL mesher component](gssf/mesher.md).
+the [GSSF CGAL mesher component](https://go-smart.github.io/gssf/mesher/).
 
 To find families, the `gssa.family` module scans for files in the directory of
 the `gssa.families` module. **TODO**: extend this to user-configurable locations.
