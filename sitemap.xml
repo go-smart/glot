@@ -4,15 +4,7 @@
     
     <url>
      <loc>None/</loc>
-     <lastmod>2016-01-13</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
-     <loc>None/about/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -20,7 +12,7 @@
     
     <url>
      <loc>None/comparison/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -28,7 +20,7 @@
     
     <url>
      <loc>None/errors/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -36,7 +28,7 @@
     
     <url>
      <loc>None/gssa-xml/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -44,7 +36,7 @@
     
     <url>
      <loc>None/families/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -53,25 +45,25 @@
         
     <url>
      <loc>None/cdm/overview/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/cdm/algorithms/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/cdm/contexts/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/cdm/parameters/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -81,31 +73,31 @@
         
     <url>
      <loc>None/server/overview/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/server/router/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/server/executables/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/server/database/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/server/transferrers/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -115,19 +107,19 @@
         
     <url>
      <loc>None/docker/overview/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/docker/container-module/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>None/docker/fenics/</loc>
-     <lastmod>2016-01-13</lastmod>
+     <lastmod>2016-01-14</lastmod>
      <changefreq>daily</changefreq>
     </url>
         

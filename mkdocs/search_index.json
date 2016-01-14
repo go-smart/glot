@@ -2,28 +2,28 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Welcome to MkDocs\n\n\nFor full documentation visit \nmkdocs.org\n.\n\n\nCommands\n\n\n\n\nmkdocs new [dir-name]\n - Create a new project.\n\n\nmkdocs serve\n - Start the live-reloading docs server.\n\n\nmkdocs build\n - Build the documentation site.\n\n\nmkdocs help\n - Print this help message.\n\n\n\n\nProject layout\n\n\nmkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    ...       # Other markdown pages, images and other files.", 
+            "text": "Go-Smart Simulation Architecture (GSSA)\n\n\nPrimary authors\n : \nNUMA Engineering Services Ltd\n (NUMA), Dundalk, Ireland\n\n\nProject website\n : \nhttp://www.gosmart-project.eu/\n\n\nThis project is co-funded by the European Commission under grant agreement no. 600641.\n\n\nThis tool, GSSA, provides scripts for running a generic simulation server, with support for Docker-based webuser-configurable simulation tools, and the configuration for the \nCrossbar.io\n WAMP router.\n\n\nDependencies\n\n\n\n\nPython 2.7\n\n\nPython 3\n\n\nElmer (with NUMA modifications)\n\n\nGMSH\n\n\nVTK 5.8\n\n\nlibjsoncpp-dev\n\n\n(Python 3) munkres pyyaml\n\n\n(Python 2) PythonOCC\n\n\n\n\nInstallation\n\n\nCMake installation is recommended from an out-of-source build directory.\n\n\nUsage\n\n\nThe simulation workflow may be launched by the command\n\n\n  go-smart-launcher settings.xml\n\n\n\n\nwhere \nsettings.xml\n is a GSSF-XML file. Adding --help will show documentation of command line arguments.", 
             "title": "Home"
         }, 
         {
-            "location": "/#welcome-to-mkdocs", 
-            "text": "For full documentation visit  mkdocs.org .", 
-            "title": "Welcome to MkDocs"
+            "location": "/#go-smart-simulation-architecture-gssa", 
+            "text": "Primary authors  :  NUMA Engineering Services Ltd  (NUMA), Dundalk, Ireland  Project website  :  http://www.gosmart-project.eu/  This project is co-funded by the European Commission under grant agreement no. 600641.  This tool, GSSA, provides scripts for running a generic simulation server, with support for Docker-based webuser-configurable simulation tools, and the configuration for the  Crossbar.io  WAMP router.", 
+            "title": "Go-Smart Simulation Architecture (GSSA)"
         }, 
         {
-            "location": "/#commands", 
-            "text": "mkdocs new [dir-name]  - Create a new project.  mkdocs serve  - Start the live-reloading docs server.  mkdocs build  - Build the documentation site.  mkdocs help  - Print this help message.", 
-            "title": "Commands"
+            "location": "/#dependencies", 
+            "text": "Python 2.7  Python 3  Elmer (with NUMA modifications)  GMSH  VTK 5.8  libjsoncpp-dev  (Python 3) munkres pyyaml  (Python 2) PythonOCC", 
+            "title": "Dependencies"
         }, 
         {
-            "location": "/#project-layout", 
-            "text": "mkdocs.yml    # The configuration file.\ndocs/\n    index.md  # The documentation homepage.\n    ...       # Other markdown pages, images and other files.", 
-            "title": "Project layout"
+            "location": "/#installation", 
+            "text": "CMake installation is recommended from an out-of-source build directory.", 
+            "title": "Installation"
         }, 
         {
-            "location": "/about/", 
-            "text": "", 
-            "title": "About"
+            "location": "/#usage", 
+            "text": "The simulation workflow may be launched by the command    go-smart-launcher settings.xml  where  settings.xml  is a GSSF-XML file. Adding --help will show documentation of command line arguments.", 
+            "title": "Usage"
         }, 
         {
             "location": "/comparison/", 

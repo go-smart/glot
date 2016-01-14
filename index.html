@@ -56,21 +56,16 @@
         
             <ul>
             
-                <li class="toctree-l3"><a href="#welcome-to-mkdocs">Welcome to MkDocs</a></li>
+                <li class="toctree-l3"><a href="#go-smart-simulation-architecture-gssa">Go-Smart Simulation Architecture (GSSA)</a></li>
                 
-                    <li><a class="toctree-l4" href="#commands">Commands</a></li>
+                    <li><a class="toctree-l4" href="#dependencies">Dependencies</a></li>
                 
-                    <li><a class="toctree-l4" href="#project-layout">Project layout</a></li>
+                    <li><a class="toctree-l4" href="#installation">Installation</a></li>
+                
+                    <li><a class="toctree-l4" href="#usage">Usage</a></li>
                 
             
             </ul>
-        
-    </li>
-<li>
-          
-            <li>
-    <li class="toctree-l1 ">
-        <a class="" href="about/">About</a>
         
     </li>
 <li>
@@ -243,21 +238,30 @@
           <div role="main">
             <div class="section">
               
-                <h1 id="welcome-to-mkdocs">Welcome to MkDocs</h1>
-<p>For full documentation visit <a href="http://mkdocs.org">mkdocs.org</a>.</p>
-<h2 id="commands">Commands</h2>
+                <h1 id="go-smart-simulation-architecture-gssa">Go-Smart Simulation Architecture (GSSA)</h1>
+<p><strong>Primary authors</strong> : <a href="http://www.numa.ie">NUMA Engineering Services Ltd</a> (NUMA), Dundalk, Ireland<br/>
+<strong>Project website</strong> : <a href="http://www.gosmart-project.eu/">http://www.gosmart-project.eu/</a></p>
+<p>This project is co-funded by the European Commission under grant agreement no. 600641.</p>
+<p>This tool, GSSA, provides scripts for running a generic simulation server, with support for Docker-based webuser-configurable simulation tools, and the configuration for the <a href="https://crossbar.io">Crossbar.io</a> WAMP router.</p>
+<h2 id="dependencies">Dependencies</h2>
 <ul>
-<li><code>mkdocs new [dir-name]</code> - Create a new project.</li>
-<li><code>mkdocs serve</code> - Start the live-reloading docs server.</li>
-<li><code>mkdocs build</code> - Build the documentation site.</li>
-<li><code>mkdocs help</code> - Print this help message.</li>
+<li>Python 2.7</li>
+<li>Python 3</li>
+<li><a href="https://github.com/go-smart/gssf-elmer">Elmer (with NUMA modifications)</a></li>
+<li>GMSH</li>
+<li>VTK 5.8</li>
+<li>libjsoncpp-dev</li>
+<li>(Python 3) munkres pyyaml</li>
+<li>(Python 2) PythonOCC</li>
 </ul>
-<h2 id="project-layout">Project layout</h2>
-<pre><code>mkdocs.yml    # The configuration file.
-docs/
-    index.md  # The documentation homepage.
-    ...       # Other markdown pages, images and other files.
+<h2 id="installation">Installation</h2>
+<p>CMake installation is recommended from an out-of-source build directory.</p>
+<h2 id="usage">Usage</h2>
+<p>The simulation workflow may be launched by the command</p>
+<pre><code class="sh">  go-smart-launcher settings.xml
 </code></pre>
+
+<p>where <code>settings.xml</code> is a GSSF-XML file. Adding --help will show documentation of command line arguments.</p>
               
             </div>
           </div>
@@ -265,7 +269,7 @@ docs/
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="about/" class="btn btn-neutral float-right" title="About"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="comparison/" class="btn btn-neutral float-right" title="Comparison"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
     </div>
@@ -293,7 +297,7 @@ docs/
       
       
       
-        <span style="margin-left: 15px"><a href="about/" style="color: #fcfcfc">Next &raquo;</a></span>
+        <span style="margin-left: 15px"><a href="comparison/" style="color: #fcfcfc">Next &raquo;</a></span>
       
     </span>
 </div>
@@ -303,5 +307,5 @@ docs/
 
 <!--
 MkDocs version : 0.14.0
-Build Date UTC : 2016-01-13 17:40:14.536832
+Build Date UTC : 2016-01-14 10:20:55.835886
 -->
