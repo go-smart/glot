@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 import os
 import math
 import json
@@ -8,6 +7,8 @@ import sys
 import shutil
 import logging
 import yaml
+
+logger = logging.getLogger(__name__)
 
 from gssa.parameters import convert_parameter
 
@@ -36,7 +37,7 @@ class MesherGSSFMixin:
         try:
             translated_xml = self.to_mesh_xml()
         except RuntimeError as e:
-            traceback.print_exc(file=sys.stderr)
+            logger.error("Could not prepare mesh XML")
             raise e
 
         # The output we expect from the mesher for input into the rest of the

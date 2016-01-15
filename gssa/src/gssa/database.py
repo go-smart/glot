@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import sqlite3
-import traceback
-import sys
 import os
 import logging
 
@@ -119,7 +117,7 @@ class SQLiteSimulationDatabase:
             ''', {"guid": simulation.get_guid(), "directory": simulation.get_dir()})
             self._db.commit()
         except Exception:
-            traceback.print_exc(file=sys.stderr)
+            logging.exception("Problem inserting data into simulations")
 
     # Mark simulations as exited if still appearing to run - usually on server start-up
     def markAllOld(self):

@@ -22,9 +22,10 @@ from gssa.parameters import convert_parameter
 import os
 from lxml import etree as ET
 import asyncio
-import sys
 import json
-import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 from gssa.families.gssf_arguments import GoSmartSimulationFrameworkArguments
 from gssa.families.mesher_gssf import MesherGSSFMixin
@@ -91,7 +92,7 @@ class ElmerLibNumaFamily(Family, MesherGSSFMixin):
         try:
             translated_xml = self.to_xml()
         except RuntimeError as e:
-            traceback.print_exc(file=sys.stderr)
+            logger.error("Could not prepare simulation XML")
             raise e
 
         tree = ET.ElementTree(translated_xml)

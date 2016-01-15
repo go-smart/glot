@@ -271,7 +271,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
         current = self.current[guid]
 
-        logger.debug("Running simulation in %s" % current.get_dir(), file=sys.stderr)
+        logger.debug("Running simulation in %s" % current.get_dir())
 
         # Inform the user that we got this far
         self.updateStatus(guid, 0, "Starting simulation...")
