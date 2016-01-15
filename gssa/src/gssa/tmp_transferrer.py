@@ -1,9 +1,8 @@
-from __future__ import print_function
-
 from zope.interface import implementer
 import shutil
 
 import os
+import logging
 import tempfile
 import tarfile
 
@@ -39,7 +38,7 @@ class TmpTransferrer:
             try:
                 shutil.copy(self._input_archive, temp_archive)
             except FileNotFoundError as e:
-                print("Could not transfer %s on /tmp to %s - not found" % (self._input_archive, temp_archive))
+                logging.error("Could not transfer %s on /tmp to %s - not found" % (self._input_archive, temp_archive))
                 raise e
 
             # Go through the files in the archive and extract any that have
@@ -49,7 +48,7 @@ class TmpTransferrer:
                     members = [m for m in tar_file.getmembers() if m.name in files.values()]
                     tar_file.extractall(temp_directory, members)
             except FileNotFoundError as e:
-                print("Could not extract %s" % temp_archive)
+                logging.error("Could not extract %s" % temp_archive)
                 raise e
 
             for local, remote in files.items():
@@ -66,7 +65,7 @@ class TmpTransferrer:
             try:
                 shutil.copy(remote, absolute_path)
             except FileNotFoundError as e:
-                print("Could not transfer %s on /tmp to %s - not found" % (remote, absolute_path))
+                logging.error("Could not transfer %s on /tmp to %s - not found" % (remote, absolute_path))
                 # raise e
 
     # Send the files back the other way - to /tmp
@@ -74,7 +73,7 @@ class TmpTransferrer:
         for local, remote in files.items():
             absolute_path = os.path.join(root, local)
             remote_absolute_path = os.path.join(remote_root, remote)
-            print("Putting", absolute_path, remote_absolute_path)
+            logging.debug("Putting", absolute_path, remote_absolute_path)
             shutil.copy(absolute_path, os.path.join('/tmp', remote_absolute_path))
 
     def configure_from_xml(self, xml):

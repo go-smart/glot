@@ -1,9 +1,8 @@
-from __future__ import print_function
-
 from zope.interface import implementer
 import shutil
 import urllib.request as urllib2
 import os
+import logging
 import requests
 from .error import Error, makeError
 
@@ -20,17 +19,17 @@ class HTTPTransferrer:
         pass
 
     def disconnect(self):
-        print("Disconnecting")
+        logging.debug("Disconnecting")
 
     # Uses downloadFile to pull
     def pull_files(self, files, root, remote_root):
         for local, remote in files.items():
             remote_url = "%s/%s" % (self._url, remote)
             absolute_path = os.path.join(root, local)
-            print("Download File From: " + remote_url)
-            print("Download File To:" + absolute_path)
+            logging.debug("Download File From: " + remote_url)
+            logging.debug("Download File To:" + absolute_path)
             directory = os.path.dirname(absolute_path)
-            print("Directory Created: " + directory)
+            logging.debug("Directory Created: " + directory)
             os.makedirs(directory, exist_ok=True)
 
             self.downloadFile(remote_url, absolute_path)
@@ -41,10 +40,10 @@ class HTTPTransferrer:
             absolute_path = os.path.join(root, local)
             if self._output == "tmp":
                 remote_absolute_path = os.path.join(remote_root, remote)
-                print("Putting", absolute_path, remote_absolute_path)
+                logging.debug("Putting", absolute_path, remote_absolute_path)
                 shutil.copy(absolute_path, os.path.join('/tmp', remote_absolute_path))
             else:
-                print("Uploading from: " + absolute_path + " to:" + remote)
+                logging.debug("Uploading from: " + absolute_path + " to:" + remote)
                 self.uploadFile(absolute_path, remote)
 
     # This just grabs using urllib GET
@@ -57,7 +56,7 @@ class HTTPTransferrer:
         '''
         if not os.path.exists(destinationStr):
             '''Check If we have downloaded the file already'''
-            print("Download: " + sourceUrlStr + " to " + destinationStr)
+            logging.debug("Download: " + sourceUrlStr + " to " + destinationStr)
 
             '''download the file'''
             try:
@@ -77,23 +76,23 @@ class HTTPTransferrer:
         sourcePath -- fullpath to the file which will be uploaded
         destinationUrl -- Url where the file is send to
         '''
-        print("upload " + sourcePath + " to " + destinationUrl)
+        logging.debug("upload " + sourcePath + " to " + destinationUrl)
         try:
             f = {'file': open(sourcePath, 'rb')}
         except:
-            print("file " + sourcePath + " does not exist.")
+            logging.warning("file " + sourcePath + " does not exist.")
         try:
             r = requests.post(destinationUrl,
                               files=f)
         except:
-            print("Server error!")
+            logging.exception("Server error!")
         if (r.status_code != 200):
-            print("Upload Failed")
+            logging.error("Upload Failed")
 
     # The XML should indicate the source/destination URL
     def configure_from_xml(self, xml):
         self._url = xml.find("url").text
         self._output = xml.find("output")
         if self._output is not None:
-            print("Outputting to tmp")
+            logging.warning("Outputting to tmp")
             self._output = self._output.text

@@ -22,6 +22,7 @@ import asyncio
 import os
 import tarfile
 import tempfile
+import logging
 
 
 # This should be adjusted when this issue resolution hits PIP: https://github.com/tavendo/AutobahnPython/issues/332
@@ -52,10 +53,10 @@ class GoSmartSimulationClientComponent(ApplicationSession):
             definition_tar = tarfile.open(fileobj=self._definition_tmp, mode='w:gz')
             for definition_file in self._definition_files:
                 definition_tar.add(definition_file, os.path.basename(definition_file))
-                print("Added [%s]" % os.path.basename(definition_file))
+                logging.debug("Added [%s]" % os.path.basename(definition_file))
             definition_tar.close()
             self._definition_tmp.flush()
-            print("Made temporary tar at %s" % self._definition_tmp.name)
+            logging.debug("Made temporary tar at %s" % self._definition_tmp.name)
             definition_node = self._gssa.find('.//definition')
             definition_node.set('location', self._definition_tmp.name)
 
@@ -65,10 +66,10 @@ class GoSmartSimulationClientComponent(ApplicationSession):
             input_tar = tarfile.open(fileobj=self._input_tmp, mode='w:gz')
             for input_file in self._input_files:
                 input_tar.add(input_file, os.path.basename(input_file))
-                print("Added [%s]" % os.path.basename(input_file))
+                logging.debug("Added [%s]" % os.path.basename(input_file))
             input_tar.close()
             self._input_tmp.flush()
-            print("Made temporary tar at %s" % self._input_tmp.name)
+            logging.debug("Made temporary tar at %s" % self._input_tmp.name)
             input_node = ET.SubElement(self._gssa.find('.//transferrer'), 'input')
             input_node.set('location', self._input_tmp.name)
 
@@ -88,19 +89,19 @@ class GoSmartSimulationClientComponent(ApplicationSession):
 
     @asyncio.coroutine
     def onJoin(self, details):
-        print("session ready")
+        logging.debug("session ready")
 
         # Run the simulation
         guid = str(self._guid)
         gssa = ET.tostring(self._gssa, encoding="unicode")
         yield from self.call(self.make_call('init'), guid)
-        print("Initiated...")
+        logging.debug("Initiated...")
         yield from self.call(self.make_call('update_settings_xml'), guid, gssa)
-        print("Sent XML...")
+        logging.debug("Sent XML...")
         yield from self.call(self.make_call('finalize'), guid, self._subdirectory)
-        print("Finalized settings...")
+        logging.debug("Finalized settings...")
         yield from self.call(self.make_call('start'), guid)
-        print("Started...")
+        logging.debug("Started...")
 
         # Listen for responses from the server
         self.subscribe(self.onComplete, self.make_call('complete'))
@@ -109,18 +110,18 @@ class GoSmartSimulationClientComponent(ApplicationSession):
     @wrapped_coroutine
     @asyncio.coroutine
     def onComplete(self, guid, success, directory, time, validation):
-        print("Complete")
+        logging.debug("Complete")
 
         # Once we have completed, print the validation if available
         if validation:
-            print("Validation:", validation)
-        print("Requesting files")
+            logging.debug("Validation:", validation)
+        logging.debug("Requesting files")
 
         # Request files from the tmp transferrer
         files = yield from self.call(self.make_call('request_files'), guid, {
             f: os.path.join('/tmp', f) for f in self._output_files
         })
-        print(files)
+        logging.debug(files)
         yield from self.finalize(guid)
 
     # NB: this is not currently hooked in (see
@@ -132,12 +133,12 @@ class GoSmartSimulationClientComponent(ApplicationSession):
         percentage, state = message
         # Print each status message to the command line
         progress = "%.2lf" % percentage if percentage else '##'
-        print("%s [%r] ---- %s%%: %s" % (id, time, progress, state['message']))
+        logging.debug("%s [%r] ---- %s%%: %s" % (id, time, progress, state['message']))
 
     @wrapped_coroutine
     @asyncio.coroutine
     def onFail(self, guid, message, directory, time, validation):
-        print("Failed - %s" % message)
+        logging.warning("Failed - %s" % message)
         yield from self.finalize(guid)
 
     # Tidy up, if needs be
@@ -146,7 +147,7 @@ class GoSmartSimulationClientComponent(ApplicationSession):
             yield from self.call(self.make_call('clean'), guid)
             self.shutdown()
         else:
-            print("Skipping clean-up")
+            logging.info("Skipping clean-up")
 
     def shutdown(self):
         self.leave()

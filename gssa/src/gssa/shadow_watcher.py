@@ -1,6 +1,7 @@
 import asyncio
 import shutil
 import os
+import logging
 
 # Approximately max minutes * 6
 _MAX_CHECKS = 600
@@ -37,9 +38,8 @@ def observe(guid, transferrer, update_callback):
                 transferrer.pull_files(target, target_dir, '.')
             else:
                 shutil.copyfile('/tmp/%s.vtp' % guid.lower(), os.path.join(target_dir, _PROGRESS_FILE))
-        except Exception as e:
-            print(e)
-            pass
+        except:
+            logging.exception("Problem with observation")
         else:
             with open(os.path.join(target_dir, _PROGRESS_FILE), 'r') as f:
                 lines = f.read().split('\n')

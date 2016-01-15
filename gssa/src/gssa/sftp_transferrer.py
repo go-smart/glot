@@ -15,10 +15,10 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from __future__ import print_function
 
 from zope.interface import implementer
 import paramiko
+import logging
 
 import os
 
@@ -51,7 +51,7 @@ class SFTPTransferrer:
             try:
                 self._sftp_client.get(remote_absolute_path, absolute_path)
             except FileNotFoundError as e:
-                print("Could not transfer %s on SFTP to %s locally - not found" % (remote_absolute_path, absolute_path))
+                logging.error("Could not transfer %s on SFTP to %s locally - not found" % (remote_absolute_path, absolute_path))
                 raise e
 
     def push_files(self, files, root, remote_root):
@@ -61,7 +61,7 @@ class SFTPTransferrer:
         for local, remote in files.items():
             absolute_path = os.path.join(root, local)
             remote_absolute_path = os.path.join(remote_root, remote)
-            print("Putting", absolute_path, remote_absolute_path)
+            logging.debug("Putting", absolute_path, remote_absolute_path)
             self._sftp_client.put(absolute_path, remote_absolute_path)
 
     def configure_from_xml(self, xml):

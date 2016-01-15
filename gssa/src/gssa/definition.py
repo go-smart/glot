@@ -18,7 +18,7 @@
 import os
 import shutil
 import sys
-import traceback
+import logging
 
 # Replace with better integrated approach!
 import asyncio
@@ -52,7 +52,7 @@ class GoSmartSimulationDefinition:
     # the server
     @asyncio.coroutine
     def _handle_percentage_connection(self, stream_reader, stream_writer):
-        print('Got percentage connection')
+        logging.debug('Got percentage connection')
         while True:
             line = yield from stream_reader.readline()
 
@@ -78,14 +78,14 @@ class GoSmartSimulationDefinition:
     @asyncio.coroutine
     def init_percentage_socket_server(self):
         if self._shadowing:
-            print('No percentages: shadowing')
+            logging.debug('No percentages: shadowing')
             self._percentage_socket_server = None
             return
 
         # Create the socket for the simulation to reach
         working_directory = self.get_dir()
         self._percentage_socket_location = self._model_builder.get_percentage_socket_location(working_directory)
-        print('Status socket for %s : %s' % (self._guid, self._percentage_socket_location))
+        logging.debug('Status socket for %s : %s' % (self._guid, self._percentage_socket_location))
         try:
             # Start the socket server
             self._percentage_socket_server = yield from asyncio.start_unix_server(
@@ -93,7 +93,7 @@ class GoSmartSimulationDefinition:
                 self._percentage_socket_location
             )
         except Exception as e:
-            print('Could not connect to socket: %s' % str(e))
+            logging.debug('Could not connect to socket: %s' % str(e))
             self._percentage_socket_server = None
 
     def __init__(self, guid, xml_string, tmpdir, translator, finalized=False, ignore_development=False, update_status_callback=None):
@@ -109,7 +109,7 @@ class GoSmartSimulationDefinition:
         try:
             self.create_xml_from_string(xml_string)
         except Exception as e:
-            print(e)
+            logging.error(e)
 
         # Create the input directory, ready for the STL surfaces
         input_dir = os.path.join(tmpdir, 'input')
@@ -117,7 +117,7 @@ class GoSmartSimulationDefinition:
             try:
                 os.mkdir(input_dir)
             except Exception:
-                traceback.print_exc(file=sys.stderr)
+                logging.exception('Could not create input directory')
 
         # Write the GSSA-XML there for safekeeping
         with open(os.path.join(tmpdir, "original.xml"), "w") as f:
@@ -146,7 +146,7 @@ class GoSmartSimulationDefinition:
         try:
             self._xml = ET.fromstring(bytes(xml, 'utf-8'))
         except Exception as e:
-            traceback.print_exc(file=sys.stderr)
+            logging.exception('Could not create XML from input')
             raise e
 
         return True
@@ -160,12 +160,12 @@ class GoSmartSimulationDefinition:
 
     # Do the heavy lifting of interpreting the GSSA-XML
     def finalize(self):
-        print("Finalize - Translating Called")
+        logging.debug("Finalize - Translating Called")
         if self._xml is None:
             return False
 
         try:
-            print("Instantiating transferrer")
+            logging.debug("Instantiating transferrer")
 
             # Discover what kind of transferrer (e.g. via /tmp, via SFTP) we
             # have been asked to use and create it
@@ -176,7 +176,7 @@ class GoSmartSimulationDefinition:
             # Configure the transferrer from this node
             self._transferrer.configure_from_xml(transferrer_node)
 
-            print("Starting to Translate")
+            logging.debug("Starting to Translate")
             # Run the translator, which understands the higher-level, generic
             # concepts of the GSSA-XML
             family, numerical_model_node, parameters, algorithms = \
@@ -188,7 +188,7 @@ class GoSmartSimulationDefinition:
             # If we must ignore DEVELOPMENT='true' runs, and if this is one, then do so
             if self._ignore_development and 'DEVELOPMENT' in parameters and parameters['DEVELOPMENT']:
                 self._shadowing = True
-                print("Shadowing mode ON for this definition")
+                logging.warning("Shadowing mode ON for this definition")
             else:
                 files_required = self._translator.get_files_required()
 
@@ -202,7 +202,7 @@ class GoSmartSimulationDefinition:
                 self._transferrer.pull_files(self._files, self.get_dir(), self.get_remote_dir())
                 self._transferrer.disconnect()
         except Exception:
-            traceback.print_exc(file=sys.stderr)
+            logging.exception('Could not finalize set-up')
             return False
 
         self._finalized = True
@@ -227,7 +227,7 @@ class GoSmartSimulationDefinition:
     # Send back the results
     def push_files(self, files):
         if self._shadowing:
-            print("Not simulating: shadowing mode ON for this definition")
+            logging.warning("Not simulating: shadowing mode ON for this definition")
             return {}
 
         uploaded_files = {}
@@ -237,7 +237,7 @@ class GoSmartSimulationDefinition:
             if os.path.exists(path):
                 uploaded_files[local] = remote
             else:
-                print("Could not find %s for pushing" % path)
+                logging.warning("Could not find %s for pushing" % path)
 
         self._transferrer.connect()
         self._transferrer.push_files(uploaded_files, self.get_dir(), self.get_remote_dir())
@@ -248,7 +248,7 @@ class GoSmartSimulationDefinition:
     @asyncio.coroutine
     def simulate(self):
         if self._shadowing:
-            print("Not simulating: shadowing mode ON for this definition")
+            logging.warning("Not simulating: shadowing mode ON for this definition")
             raise RuntimeError("Failing here to leave simulation for external server control")
 
         # Get our asyncio task from the model builder
@@ -267,7 +267,7 @@ class GoSmartSimulationDefinition:
     @asyncio.coroutine
     def validation(self):
         if self._shadowing:
-            print("Not validating: shadowing mode ON for this definition")
+            logging.warning("Not validating: shadowing mode ON for this definition")
             return None
 
         # Run the validation step only

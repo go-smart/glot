@@ -20,6 +20,7 @@
 import os
 import json
 import asyncio
+import logging
 from .parameters import read_parameters, convert_parameter
 
 register = {}
@@ -31,7 +32,7 @@ class FamilyType(type):
     def __init__(cls, clsname, bases, dct):
         if cls.family_name is not None:
             register[cls.family_name] = cls
-            print("Registered family: %s" % cls.family_name)
+            logging.info("Registered family: %s" % cls.family_name)
         return type.__init__(cls, clsname, bases, dct)
 
 
@@ -88,7 +89,7 @@ class Family(metaclass=FamilyType):
             try:
                 target_file = "%s%s" % (region.get("id"), os.path.splitext(region.get('input'))[1])
             except AttributeError as e:
-                print(region.get('name'), region.get('input'), region.get('groups'))
+                logging.error("Missing input file", region.get('name'), region.get('input'), region.get('groups'))
                 raise e
 
             self._regions[region.get('id')] = {

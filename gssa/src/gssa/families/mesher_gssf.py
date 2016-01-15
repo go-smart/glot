@@ -6,6 +6,7 @@ import json
 from lxml import etree as ET
 import sys
 import shutil
+import logging
 import yaml
 
 from gssa.parameters import convert_parameter
@@ -51,7 +52,7 @@ class MesherGSSFMixin:
         uploaded_msh = os.path.join(working_directory, "input", "mesh-0.msh")
         if os.path.exists(uploaded_msh):
             shutil.copyfile(uploaded_msh, input_msh)
-            print("Found uploaded msh")
+            logging.info("Found uploaded msh")
             success = True
 
         # If we do not, then prepare the mesher-cgal configuration

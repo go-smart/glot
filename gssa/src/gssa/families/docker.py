@@ -3,6 +3,7 @@ import os
 import yaml
 import io
 import tarfile
+import logging
 
 from gssa.family import Family
 from gssa.docker import Submitter
@@ -108,7 +109,7 @@ class DockerFamily(Family):
         # Need to make sure this is last uploaded
         if definition_tar in self._files_required:
             del self._files_required[definition_tar]
-            print("Removing definition of tar from files required")
+            logging.debug("Removing definition of tar from files required")
 
         loop = asyncio.get_event_loop()
         success = yield from self._submitter.run_script(
@@ -118,7 +119,7 @@ class DockerFamily(Family):
             self._files_required.keys(),
             magic_script
         )
-        print("DONE")
+        logging.debug("DONE")
 
         return success
 
@@ -132,5 +133,5 @@ class DockerFamily(Family):
 
     def retrieve_files(self, destination):
         for f in self._retrievable_files:
-            print(f, '->', destination)
-            print(self._submitter.copy_output(f, destination))
+            logging.debug(f, '->', destination)
+            logging.debug(self._submitter.copy_output(f, destination))

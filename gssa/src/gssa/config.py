@@ -19,6 +19,7 @@
 import os
 import gosmart_sf_config
 import yaml
+import logging
 
 # CMake generated module
 git_revision = gosmart_sf_config.git_revision
@@ -28,8 +29,14 @@ __config = None
 __config_file = None
 
 
+def _init_logging():
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
 def init_config(config_file=None):
     global __config, __config_file
+
+    _init_logging()
 
     if config_file is None:
         config_file = os.path.join(etc_location, 'gssa.yml')
@@ -40,7 +47,7 @@ def init_config(config_file=None):
         with open(config_file, 'r') as config_fileh:
             __config = yaml.safe_load(config_fileh)
     except IOError:
-        print("[no config file found]")
+        logging.warning("[no config file found]")
         __config = {}
 
 
