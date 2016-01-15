@@ -25,16 +25,20 @@ git_revision = gosmart_sf_config.git_revision
 etc_location = gosmart_sf_config.etc_location
 
 __config = None
+__config_file = None
 
 
 def init_config(config_file=None):
-    global __config
+    global __config, __config_file
 
     if config_file is None:
         config_file = os.path.join(etc_location, 'gssa.yml')
 
+    __config_file = config_file
+
     try:
-        __config = yaml.safe_load(config_file)
+        with open(config_file, 'r') as config_fileh:
+            __config = yaml.safe_load(config_fileh)
     except IOError:
         print("[no config file found]")
         __config = {}
@@ -51,3 +55,7 @@ def get_global_config(key, default=None):
         return value
     except KeyError:
         return default
+
+
+def get_config_file():
+    return __config_file
