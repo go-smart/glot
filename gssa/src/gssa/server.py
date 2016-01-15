@@ -208,7 +208,6 @@ class GoSmartSimulationServerComponent(ApplicationSession):
     # com.gosmartsimulation.request_files - push the requested output files
     # through the transferrer and return the list that was sent
     def doRequestFiles(self, guid, files):
-        logger.debug(files, self.current, guid)
         if guid not in self.current or not isinstance(files, dict):
             return {}
 
@@ -374,7 +373,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
             logger.exception("Problem saving failure status")
 
         self.current[guid].set_exit_status(False, message)
-        logger.warning('Failure', guid, message)
+        logger.warning('Failure [%s]: ', guid, repr(message))
 
         # Notify any subscribers
         self.publish(u'com.gosmartsimulation.fail', guid, message, self.current[guid].get_dir(), timestamp, None)
