@@ -118,7 +118,7 @@ class Submitter:
                 dockerlaunch_socket_location
             )
         except Exception as e:
-            logger.debug("Could not open connection: %s" % str(e))
+            logger.debug("Could not open connection to dockerlaunch: %s" % str(e))
             raise e
 
         # Read and write objects for reaching the daemon
