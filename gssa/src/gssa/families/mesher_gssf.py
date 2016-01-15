@@ -3,7 +3,6 @@ import os
 import math
 import json
 from lxml import etree as ET
-import sys
 import shutil
 import logging
 import yaml
@@ -298,7 +297,17 @@ class MesherGSSFMixin:
         if not needlezonefield:
             needlezonefield = zonefield
 
-        for ix, needle in self._needles.items():
+        # Make sure all needles are int-castable, or, if not,
+        # just make up our own ordering
+        try:
+            for ix in self._needles:
+                int(ix.replace('needle', ''))
+        except ValueError:
+            needle_pairs = [(str(i), v) for i, v in enumerate(self._needles.values())]
+        finally:
+            needle_pairs = self._needles
+
+        for ix, needle in needle_pairs:
             # Add a needle node and set the name to be our index (if we have
             # been given, say, 'needle-3' as an index, it becomes '3')
             globalNeedleNode = ET.SubElement(globalNeedlesNode, "needle")
