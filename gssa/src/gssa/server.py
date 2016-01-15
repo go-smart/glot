@@ -29,6 +29,8 @@ import tempfile
 import time
 from . import family as families
 
+logger = logging.getLogger(__name__)
+
 # Try to hook into vigilant if present
 try:
     import StatsCore
@@ -88,7 +90,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
         # Create a directory to hold information specific to this server ID
         if not os.path.exists(server_id):
-            logging.debug("Creating server ID directory")
+            logger.debug("Creating server ID directory")
             os.mkdir(server_id)
 
         # Use this as the working directory
@@ -157,7 +159,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
     def _handle_simulation_done(self, fut, guid):
         # This should be the return value of the simulate call
         success = fut.result()
-        logging.info("Simulation exited [%s]" % guid)
+        logger.info("Simulation exited [%s]" % guid)
 
         current = self.current[guid]
 
@@ -182,10 +184,10 @@ class GoSmartSimulationServerComponent(ApplicationSession):
                     error_message.encode('ascii', 'xmlcharrefreplace')
                     error_message.encode('utf-8')
 
-            logging.warning("Failed simulation in %s" % current.get_dir())
+            logger.warning("Failed simulation in %s" % current.get_dir())
             yield from self.eventFail(guid, makeError(code, error_message))
 
-        logging.info("Finished simulation")
+        logger.info("Finished simulation")
 
     # com.gosmartsimulation.update_files - add the passed files to the
     # simulation's reference dictionary of required input files (available to be
@@ -194,10 +196,10 @@ class GoSmartSimulationServerComponent(ApplicationSession):
         if guid not in self.current or not isinstance(files, dict):
             return False
 
-        logging.debug("Update Files")
+        logger.debug("Update Files")
         for local, remote in files.items():
-            logging.debug("remote" + remote)
-            logging.debug("Local" + local)
+            logger.debug("remote" + remote)
+            logger.debug("Local" + local)
         current = self.current[guid]
         current.update_files(files)
 
@@ -206,7 +208,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
     # com.gosmartsimulation.request_files - push the requested output files
     # through the transferrer and return the list that was sent
     def doRequestFiles(self, guid, files):
-        logging.debug(files, self.current, guid)
+        logger.debug(files, self.current, guid)
         if guid not in self.current or not isinstance(files, dict):
             return {}
 
@@ -215,7 +217,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
         try:
             uploaded_files = current.push_files(files)
         except Exception:
-            logging.exception("Problem pushing files")
+            logger.exception("Problem pushing files")
             return {}
 
         return uploaded_files
@@ -234,7 +236,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
             # if the tool runs elsewhere, as in the Docker case)
             tmpdir = tempfile.mkdtemp(prefix='gssf-')
             os.chmod(tmpdir, 0o770)
-            logging.debug("Changed permissions")
+            logger.debug("Changed permissions")
 
             # Set up the translator to parse the standard bits of GSSA-XML
             translator = GoSmartSimulationTranslator()
@@ -252,10 +254,10 @@ class GoSmartSimulationServerComponent(ApplicationSession):
             # TODO: why announce this? Surely the response is sufficient?
             self.publish(u'com.gosmartsimulation.announce', self.server_id, guid, [0, 'XML uploaded'], tmpdir, time.time())
         except Exception as e:
-            logging.exception("Problem updating settings XML")
+            logger.exception("Problem updating settings XML")
             raise e
 
-        logging.debug("XML set")
+        logger.debug("XML set")
 
         return True
 
@@ -269,7 +271,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
         current = self.current[guid]
 
-        logging.debug("Running simulation in %s" % current.get_dir(), file=sys.stderr)
+        logger.debug("Running simulation in %s" % current.get_dir(), file=sys.stderr)
 
         # Inform the user that we got this far
         self.updateStatus(guid, 0, "Starting simulation...")
@@ -290,7 +292,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
     # com.gosmartsimulation.finalize - do any remaining preparation before the
     # simulation can start
     def doFinalize(self, guid, client_directory_prefix):
-        logging.debug("Converting the Xml")
+        logger.debug("Converting the Xml")
         if guid not in self.current:
             return False
 
@@ -319,7 +321,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
     # DEPRECATED: do whole workflow
     def doWorkflow(self, guid, xml, input_files, request_files):
-        logging.debug("WorkflowStarted")
+        logger.debug("WorkflowStarted")
         self.doInit(self, guid)
         self.doUpdateSettingsXml(self, guid, xml)
         self.doUpdateFiles(self, guid, input_files)
@@ -329,14 +331,14 @@ class GoSmartSimulationServerComponent(ApplicationSession):
     # Called when simulation completes - publishes a completion event
     @asyncio.coroutine
     def eventComplete(self, guid):
-        logging.debug("complete", guid)
+        logger.debug("complete", guid)
         if guid not in self.current:
-            logging.warning("Tried to send simulation-specific completion event with no current simulation definition")
+            logger.warning("Tried to send simulation-specific completion event with no current simulation definition")
 
         # Record the finishing time, as we see it
         timestamp = time.time()
 
-        logging.debug(timestamp)
+        logger.debug(timestamp)
         try:
             # Tell the database we have finished
             loop = asyncio.get_event_loop()
@@ -347,10 +349,10 @@ class GoSmartSimulationServerComponent(ApplicationSession):
                 loop.call_soon_threadsafe(lambda: self._db.updateValidation(guid, validation))
         except:
             validation = None
-            logging.exception("Problem with completion/validation")
+            logger.exception("Problem with completion/validation")
 
         self.current[guid].set_exit_status(True)
-        logging.info('Success [%s]' % guid)
+        logger.info('Success [%s]' % guid)
 
         # Notify any subscribers
         self.publish(u'com.gosmartsimulation.complete', guid, makeError('SUCCESS', 'Success'), self.current[guid].get_dir(), timestamp, validation)
@@ -359,7 +361,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
     @asyncio.coroutine
     def eventFail(self, guid, message):
         if guid not in self.current:
-            logging.warning("Tried to send simulation-specific failure event with no current simulation definition")
+            logger.warning("Tried to send simulation-specific failure event with no current simulation definition")
 
         # Record the failure time as we see it
         timestamp = time.time()
@@ -369,10 +371,10 @@ class GoSmartSimulationServerComponent(ApplicationSession):
             # Update the database
             loop.call_soon_threadsafe(lambda: self.setStatus(guid, message["code"], message["message"], None, timestamp))
         except:
-            logging.exception("Problem saving failure status")
+            logger.exception("Problem saving failure status")
 
         self.current[guid].set_exit_status(False, message)
-        logging.warning('Failure', guid, message)
+        logger.warning('Failure', guid, message)
 
         # Notify any subscribers
         self.publish(u'com.gosmartsimulation.fail', guid, message, self.current[guid].get_dir(), timestamp, None)
@@ -428,7 +430,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
                 # Tell the world
                 self.publish(u'com.gosmartsimulation.announce', self.server_id, simulation['guid'], (percentage, status), simulation['directory'], simulation['timestamp'], simulation['validation'])
-                logging.debug("Announced: %s %s %r" % (simulation['guid'], simulation['directory'], simulation['validation'] is not None))
+                logger.debug("Announced: %s %s %r" % (simulation['guid'], simulation['directory'], simulation['validation'] is not None))
 
         except Exception:
             # If we can't get it from the database, fall back to the
@@ -444,7 +446,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
                     properties['location'],
                     time.time()
                 )
-                logging.debug("Announced (from map): %s" % simulation)
+                logger.debug("Announced (from map): %s" % simulation)
 
         # Follow up with an identify event
         self.onRequestIdentify()
@@ -475,16 +477,16 @@ class GoSmartSimulationServerComponent(ApplicationSession):
         timestamp = time.time()
 
         # Write out to the command line for debug
-        # TODO: switch to `logging` and `vigilant`
+        # TODO: switch to `logger` and `vigilant`
         progress = "%.2lf" % percentage if percentage else '##'
-        logging.debug("%s [%r] ---- %s%%: %s" % (id, timestamp, progress, message))
+        logger.debug("%s [%r] ---- %s%%: %s" % (id, timestamp, progress, message))
 
         try:
             # Call the setStatus method asynchronously
             loop = asyncio.get_event_loop()
             loop.call_soon_threadsafe(lambda: self.setStatus(id, 'IN_PROGRESS', message, percentage, timestamp))
         except:
-            logging.exception("Problem saving status")
+            logger.exception("Problem saving status")
 
         directory = None
         if id in self.current:
@@ -509,15 +511,15 @@ class GoSmartSimulationServerComponent(ApplicationSession):
                 server_name,
                 score
             )
-            logging.info("Announced score: %d [%s]" % (score, self.server_id))
+            logger.info("Announced score: %d [%s]" % (score, self.server_id))
         except Exception as e:
-            logging.error("Didn't send score!")
+            logger.error("Didn't send score!")
             raise e
 
     # Fired when we first join the router - this gives us a chance to register
     # everything
     def onJoin(self, details):
-        logging.info("session ready")
+        logger.info("session ready")
 
         # Register an us-specific set of RPC calls. Also attempts to do the same
         # for the generic set, if we haven't been beaten to the punch
@@ -538,6 +540,6 @@ class GoSmartSimulationServerComponent(ApplicationSession):
                 self.register(self.doWorkflow, u'com.gosmartsimulation%s.workflow' % i)
                 self.register(self.doProperties, u'com.gosmartsimulation%s.properties' % i)
                 self.register(self.doRetrieveStatus, u'com.gosmartsimulation%s.retrieve_status' % i)
-            logging.info("procedure registered")
+            logger.info("procedure registered")
         except Exception as e:
-            logging.warning("could not register procedure: {0}".format(e))
+            logger.warning("could not register procedure: {0}".format(e))

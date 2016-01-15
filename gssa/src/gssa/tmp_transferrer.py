@@ -8,6 +8,8 @@ import tarfile
 
 from .transferrer import ITransferrer
 
+logger = logging.getLogger(__name__)
+
 
 # A transferrer that works only on the local machine, using /tmp to move files
 # from client to server
@@ -38,7 +40,7 @@ class TmpTransferrer:
             try:
                 shutil.copy(self._input_archive, temp_archive)
             except FileNotFoundError as e:
-                logging.error("Could not transfer %s on /tmp to %s - not found" % (self._input_archive, temp_archive))
+                logger.error("Could not transfer %s on /tmp to %s - not found" % (self._input_archive, temp_archive))
                 raise e
 
             # Go through the files in the archive and extract any that have
@@ -48,7 +50,7 @@ class TmpTransferrer:
                     members = [m for m in tar_file.getmembers() if m.name in files.values()]
                     tar_file.extractall(temp_directory, members)
             except FileNotFoundError as e:
-                logging.error("Could not extract %s" % temp_archive)
+                logger.error("Could not extract %s" % temp_archive)
                 raise e
 
             for local, remote in files.items():
@@ -65,7 +67,7 @@ class TmpTransferrer:
             try:
                 shutil.copy(remote, absolute_path)
             except FileNotFoundError as e:
-                logging.error("Could not transfer %s on /tmp to %s - not found" % (remote, absolute_path))
+                logger.error("Could not transfer %s on /tmp to %s - not found" % (remote, absolute_path))
                 # raise e
 
     # Send the files back the other way - to /tmp
@@ -73,7 +75,7 @@ class TmpTransferrer:
         for local, remote in files.items():
             absolute_path = os.path.join(root, local)
             remote_absolute_path = os.path.join(remote_root, remote)
-            logging.debug("Putting", absolute_path, remote_absolute_path)
+            logger.debug("Putting", absolute_path, remote_absolute_path)
             shutil.copy(absolute_path, os.path.join('/tmp', remote_absolute_path))
 
     def configure_from_xml(self, xml):

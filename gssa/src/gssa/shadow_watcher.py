@@ -3,6 +3,8 @@ import shutil
 import os
 import logging
 
+logger = logging.getLogger(__name__)
+
 # Approximately max minutes * 6
 _MAX_CHECKS = 600
 _TESTING = False
@@ -39,7 +41,7 @@ def observe(guid, transferrer, update_callback):
             else:
                 shutil.copyfile('/tmp/%s.vtp' % guid.lower(), os.path.join(target_dir, _PROGRESS_FILE))
         except:
-            logging.exception("Problem with observation")
+            logger.exception("Problem with observation")
         else:
             with open(os.path.join(target_dir, _PROGRESS_FILE), 'r') as f:
                 lines = f.read().split('\n')

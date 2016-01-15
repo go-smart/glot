@@ -6,6 +6,8 @@ import json
 import logging
 import os
 
+logger = logging.getLogger(__name__)
+
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from hachiko.hachiko import AIOEventHandler
@@ -62,7 +64,7 @@ class Submitter:
         try:
             shutil.copyfile(requested_location, target_location)
         except:
-            logging.exception('Could not copy output')
+            logger.exception('Could not copy output')
             return None
 
         return True
@@ -87,13 +89,13 @@ class Submitter:
 
     # Print a message to highlight a new output file from Docker
     def notify_output(self, filename):
-        logging.debug('Output:', filename)
+        logger.debug('Output:', filename)
         if filename not in self._output_files:
             self._output_files.append(filename)
 
     # Send a command to the dockerlaunch daemon
     def send_command(self, writer, command, arguments):
-        logging.debug('-->', command, arguments)
+        logger.debug('-->', command, arguments)
         writer.write(bytes("%s\n" % json.dumps({
             'command': command,
             'arguments': arguments
@@ -116,18 +118,18 @@ class Submitter:
                 config.get_socket_location
             )
         except Exception as e:
-            logging.debug("Could not open connection: %s" % str(e))
+            logger.debug("Could not open connection: %s" % str(e))
             raise e
 
         # Read and write objects for reaching the daemon
         self.reader, self.writer = reader, writer
 
-        logging.debug("Simulating")
+        logger.debug("Simulating")
         try:
             # Tell the daemon to fire up an instance
             self.send_command(writer, 'START', {'image': image, 'update socket': self._socket_location})
             success, message = yield from self.receive_response(reader)
-            logging.debug('<--', success, message)
+            logger.debug('<--', success, message)
 
             if not success:
                 raise RuntimeError('Could not start: %s', message)
@@ -149,7 +151,7 @@ class Submitter:
                     message['input subdirectory']
                 )
             except KeyError as e:
-                logging.error("Problem setting up Docker")
+                logger.error("Problem setting up Docker")
                 raise e
 
             # Start watching for output files of interest in the Docker volume
@@ -169,7 +171,7 @@ class Submitter:
                 to_location = os.path.join(self._input_directory, os.path.basename(f))
                 from_location = os.path.join(working_directory, 'input', os.path.basename(f))
                 if not f.startswith('.') and not os.path.isdir(to_location):
-                    logging.debug("Transferring %s to %s for docker" % (from_location, to_location))
+                    logger.debug("Transferring %s to %s for docker" % (from_location, to_location))
 
                     shutil.copyfile(
                         from_location,
@@ -187,12 +189,12 @@ class Submitter:
                 with open(magic_script, 'w') as f, open(os.path.join(working_directory, 'start.py'), 'r') as g:
                     f.write(g.read())
 
-                logging.debug("Wrote magic script to %s" % magic_script)
+                logger.debug("Wrote magic script to %s" % magic_script)
 
             # Wait for the simulation to finish
             self.send_command(writer, 'WAIT', None)
             success, message = yield from self.receive_response(reader)
-            logging.debug('<--', success, message)
+            logger.debug('<--', success, message)
 
             if not success:
                 raise RuntimeError('Could not wait: %s', message)
@@ -201,7 +203,7 @@ class Submitter:
 
             self.send_command(writer, 'LOGS', None)
             success, message = yield from self.receive_response(reader)
-            logging.debug('<--', success, message.replace('\\n', '\n'))
+            logger.debug('<--', success, message.replace('\\n', '\n'))
 
             if not success:
                 raise RuntimeError('Could not retrieve logs: %s', message)
@@ -213,20 +215,20 @@ class Submitter:
             # If we did not exit cleanly, inform the server
             if int(code) != 0:
                 raise RuntimeError('Non-zero exit status: %d %s' % (int(code), message))
-            logging.debug('<==>', code, message)
+            logger.debug('<==>', code, message)
 
             # Copy the logs back to the simulation 'working directory'
             for output_file in ('docker_inner.log', 'job.out', 'job.err'):
-                logging.debug('-' * 20)
-                logging.debug(output_file.upper())
+                logger.debug('-' * 20)
+                logger.debug(output_file.upper())
 
                 output_log = self.output(os.path.join('logs', output_file))
 
                 # Print out the logs
                 if output_log:
-                    logging.debug(output_log)
+                    logger.debug(output_log)
                 else:
-                    logging.debug("[no output from %s]" % output_file)
+                    logger.debug("[no output from %s]" % output_file)
         except Exception as e:
             # Redundant?!
             success = False
@@ -243,7 +245,7 @@ class Submitter:
         # Tell the Docker side to tidy up
         self.send_command(self.writer, 'DESTROY', None)
         success, message = yield from self.receive_response(self.reader)
-        logging.debug('<--', success, message)
+        logger.debug('<--', success, message)
 
         if not success:
             raise RuntimeError('Could not destroy: %s', message)
@@ -272,7 +274,7 @@ class Submitter:
         try:
             message = json.loads(line)
         except ValueError as e:
-            # Insert logging
+            # Insert logger
             raise e
 
         try:

@@ -24,6 +24,8 @@ import os
 
 from .transferrer import ITransferrer
 
+logger = logging.getLogger(__name__)
+
 
 # FIXME: NEEDS WORK
 @implementer(ITransferrer)
@@ -51,7 +53,7 @@ class SFTPTransferrer:
             try:
                 self._sftp_client.get(remote_absolute_path, absolute_path)
             except FileNotFoundError as e:
-                logging.error("Could not transfer %s on SFTP to %s locally - not found" % (remote_absolute_path, absolute_path))
+                logger.error("Could not transfer %s on SFTP to %s locally - not found" % (remote_absolute_path, absolute_path))
                 raise e
 
     def push_files(self, files, root, remote_root):
@@ -61,7 +63,7 @@ class SFTPTransferrer:
         for local, remote in files.items():
             absolute_path = os.path.join(root, local)
             remote_absolute_path = os.path.join(remote_root, remote)
-            logging.debug("Putting", absolute_path, remote_absolute_path)
+            logger.debug("Putting", absolute_path, remote_absolute_path)
             self._sftp_client.put(absolute_path, remote_absolute_path)
 
     def configure_from_xml(self, xml):
