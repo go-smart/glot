@@ -8,9 +8,9 @@ import sys
 import shutil
 import yaml
 
-from ..parameters import convert_parameter
+from gssa.parameters import convert_parameter
 
-from ..families.gssf_arguments import GoSmartSimulationFrameworkArguments
+from .gssf_arguments import GoSmartSimulationFrameworkArguments
 
 
 # This mixin augments a family with mesher-cgal volumetric meshing support,

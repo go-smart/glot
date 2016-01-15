@@ -4,9 +4,9 @@ import yaml
 import io
 import tarfile
 
-from ..family import Family
-from ..docker import Submitter
-from ..parameters import convert_parameter
+from gssa.family import Family
+from gssa.docker import Submitter
+from gssa.parameters import convert_parameter
 
 
 class DockerFamily(Family):
