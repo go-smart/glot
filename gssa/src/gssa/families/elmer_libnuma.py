@@ -68,6 +68,7 @@ class ElmerLibNumaFamily(Family, MesherGSSFMixin):
 
     # Needle index can be either needle index (as given in XML input) or an
     # integer n indicating the nth needle in the order of the needles XML block
+    # FIXME: is this order guaranteed? in any case, non-id is DEPRECATED
     def get_needle_parameter(self, needle_index, key, try_json=True):
         if needle_index not in self._needles and needle_index in self._needle_order:
             needle_index = self._needle_order[needle_index]
