@@ -91,7 +91,7 @@ class Family(metaclass=FamilyType):
             try:
                 target_file = "%s%s" % (region.get("id"), os.path.splitext(region.get('input'))[1])
             except AttributeError as e:
-                logger.error("Missing input file", region.get('name'), region.get('input'), region.get('groups'))
+                logger.error("Missing input file : %s, %s, %s" % (region.get('name'), region.get('input'), str(region.get('groups'))))
                 raise e
 
             self._regions[region.get('id')] = {

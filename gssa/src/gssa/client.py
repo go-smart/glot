@@ -116,7 +116,7 @@ class GoSmartSimulationClientComponent(ApplicationSession):
 
         # Once we have completed, print the validation if available
         if validation:
-            logger.debug("Validation:", validation)
+            logger.debug("Validation: %s" % repr(validation))
         logger.debug("Requesting files")
 
         # Request files from the tmp transferrer

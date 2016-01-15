@@ -43,7 +43,7 @@ class HTTPTransferrer:
             absolute_path = os.path.join(root, local)
             if self._output == "tmp":
                 remote_absolute_path = os.path.join(remote_root, remote)
-                logger.debug("Putting", absolute_path, remote_absolute_path)
+                logger.debug("Putting %s %s" % (absolute_path, remote_absolute_path))
                 shutil.copy(absolute_path, os.path.join('/tmp', remote_absolute_path))
             else:
                 logger.debug("Uploading from: " + absolute_path + " to:" + remote)

@@ -51,7 +51,7 @@ def init_config(config_file=None):
         __config = {}
 
 
-def get_global_config(key, default=None):
+def get(key, default=None):
     if __config is None:
         init_config()
 

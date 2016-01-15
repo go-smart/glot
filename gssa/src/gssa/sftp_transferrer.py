@@ -63,7 +63,7 @@ class SFTPTransferrer:
         for local, remote in files.items():
             absolute_path = os.path.join(root, local)
             remote_absolute_path = os.path.join(remote_root, remote)
-            logger.debug("Putting", absolute_path, remote_absolute_path)
+            logger.debug("Putting %s %s" % (absolute_path, remote_absolute_path))
             self._sftp_client.put(absolute_path, remote_absolute_path)
 
     def configure_from_xml(self, xml):

@@ -89,13 +89,13 @@ class Submitter:
 
     # Print a message to highlight a new output file from Docker
     def notify_output(self, filename):
-        logger.debug('Output:', filename)
+        logger.debug('Output: %s' % filename)
         if filename not in self._output_files:
             self._output_files.append(filename)
 
     # Send a command to the dockerlaunch daemon
     def send_command(self, writer, command, arguments):
-        logger.debug('-->', command, arguments)
+        logger.debug('--> %s %s' % (command, str(arguments)))
         writer.write(bytes("%s\n" % json.dumps({
             'command': command,
             'arguments': arguments
@@ -106,7 +106,7 @@ class Submitter:
     def run_script(self, loop, working_directory, image, files_required=[], magic_script=None):
         success = True
 
-        dockerlaunch_socket_location = config.get_socket_location(
+        dockerlaunch_socket_location = config.get(
             "dockerlaunch.socket_location",
             default_dockerlaunch_socket_location
         )
@@ -115,7 +115,7 @@ class Submitter:
         # group for this to work)
         try:
             reader, writer = yield from asyncio.open_unix_connection(
-                config.get_socket_location
+                dockerlaunch_socket_location
             )
         except Exception as e:
             logger.debug("Could not open connection: %s" % str(e))
@@ -129,7 +129,7 @@ class Submitter:
             # Tell the daemon to fire up an instance
             self.send_command(writer, 'START', {'image': image, 'update socket': self._socket_location})
             success, message = yield from self.receive_response(reader)
-            logger.debug('<--', success, message)
+            logger.debug('<-- %s %s' % (str(success), str(message)))
 
             if not success:
                 raise RuntimeError('Could not start: %s', message)
@@ -194,7 +194,7 @@ class Submitter:
             # Wait for the simulation to finish
             self.send_command(writer, 'WAIT', None)
             success, message = yield from self.receive_response(reader)
-            logger.debug('<--', success, message)
+            logger.debug('<-- %s %s' % (str(success), str(message)))
 
             if not success:
                 raise RuntimeError('Could not wait: %s', message)
@@ -203,7 +203,7 @@ class Submitter:
 
             self.send_command(writer, 'LOGS', None)
             success, message = yield from self.receive_response(reader)
-            logger.debug('<--', success, message.replace('\\n', '\n'))
+            logger.debug('<-- %s %s' % (str(success), str(message.replace('\\n', '\n'))))
 
             if not success:
                 raise RuntimeError('Could not retrieve logs: %s', message)
@@ -215,7 +215,7 @@ class Submitter:
             # If we did not exit cleanly, inform the server
             if int(code) != 0:
                 raise RuntimeError('Non-zero exit status: %d %s' % (int(code), message))
-            logger.debug('<==>', code, message)
+            logger.debug('<==> %s %s' % (str(code), str(message)))
 
             # Copy the logs back to the simulation 'working directory'
             for output_file in ('docker_inner.log', 'job.out', 'job.err'):
@@ -245,7 +245,7 @@ class Submitter:
         # Tell the Docker side to tidy up
         self.send_command(self.writer, 'DESTROY', None)
         success, message = yield from self.receive_response(self.reader)
-        logger.debug('<--', success, message)
+        logger.debug('<-- %s %s' % (str(success), str(message)))
 
         if not success:
             raise RuntimeError('Could not destroy: %s', message)
@@ -274,7 +274,7 @@ class Submitter:
         try:
             message = json.loads(line)
         except ValueError as e:
-            # Insert logger
+            logger.error("Could not decode docker response")
             raise e
 
         try:

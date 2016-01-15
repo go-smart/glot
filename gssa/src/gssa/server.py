@@ -22,7 +22,6 @@ from autobahn.asyncio.wamp import ApplicationSession
 
 import os
 import socket
-import sys
 import multiprocessing
 import logging
 import tempfile
@@ -330,7 +329,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
     # Called when simulation completes - publishes a completion event
     @asyncio.coroutine
     def eventComplete(self, guid):
-        logger.debug("complete", guid)
+        logger.debug("Completed [%s]" % guid)
         if guid not in self.current:
             logger.warning("Tried to send simulation-specific completion event with no current simulation definition")
 
@@ -373,7 +372,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
             logger.exception("Problem saving failure status")
 
         self.current[guid].set_exit_status(False, message)
-        logger.warning('Failure [%s]: ', guid, repr(message))
+        logger.warning('Failure [%s]: %s' % (guid, repr(message)))
 
         # Notify any subscribers
         self.publish(u'com.gosmartsimulation.fail', guid, message, self.current[guid].get_dir(), timestamp, None)
