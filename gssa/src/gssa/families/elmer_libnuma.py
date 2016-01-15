@@ -26,8 +26,8 @@ import sys
 import json
 import traceback
 
-from .gssf_arguments import GoSmartSimulationFrameworkArguments
-from .mesher_gssf import MesherGSSFMixin
+from gssa.families.gssf_arguments import GoSmartSimulationFrameworkArguments
+from gssa.families.mesher_gssf import MesherGSSFMixin
 
 
 class ElmerLibNumaFamily(Family, MesherGSSFMixin):
