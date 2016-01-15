@@ -156,7 +156,7 @@ class Family(metaclass=FamilyType):
         return convert_parameter(parameter, typ, try_json)
 
     @asyncio.coroutine
-    def validation(self):
+    def validation(self, working_directory=None):
         return None
 
 from .families import scan
