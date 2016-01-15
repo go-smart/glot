@@ -57,6 +57,8 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
         ApplicationSession.__init__(self, x)
 
+        # Grab the config
+
         # This forwards exceptions to the client
         self.traceback_app = True
 

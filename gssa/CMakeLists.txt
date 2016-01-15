@@ -30,5 +30,6 @@ if (PYTHON3)
 
     # On install, run setup.py [install]
     install(CODE "execute_process(COMMAND ${PYTHON3} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/conf/vigilant.cfg DESTINATION ${ETC_LOCATION} COMPONENT config)
+    file(GLOB CONFIG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/conf/*")
+    install(FILES ${CONFIG_FILES} DESTINATION ${ETC_LOCATION} COMPONENT config)
 endif()

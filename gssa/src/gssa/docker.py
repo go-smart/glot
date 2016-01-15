@@ -9,7 +9,9 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from hachiko.hachiko import AIOEventHandler
 
-socket_location = '/var/run/docker-launch/docker-launch.sock'
+from . import config
+
+default_dockerlaunch_socket_location = '/var/run/docker-launch/docker-launch.sock'
 
 
 # Check for output in the Docker volume
@@ -101,11 +103,16 @@ class Submitter:
     def run_script(self, loop, working_directory, image, files_required=[], magic_script=None):
         success = True
 
+        dockerlaunch_socket_location = config.get_socket_location(
+            "dockerlaunch.socket_location",
+            default_dockerlaunch_socket_location
+        )
+
         # Connect to the dockerlaunch daemon (we should be in the `dockerlaunch`
         # group for this to work)
         try:
             reader, writer = yield from asyncio.open_unix_connection(
-                socket_location
+                config.get_socket_location
             )
         except Exception as e:
             print("Could not open connection: %s" % str(e))
