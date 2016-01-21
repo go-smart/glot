@@ -146,7 +146,7 @@ class Submitter:
             self.send_command(writer, 'START', {
                 'image': image,
                 'update socket': self._socket_location,
-                'volume location': os.path.basename(temporary_directory)
+                'volume location': os.path.basename(tmpdir)
             })
             success, message = yield from self.receive_response(reader)
             logger.debug('<-- %s %s' % (str(success), str(message)))
