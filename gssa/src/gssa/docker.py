@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from hachiko.hachiko import AIOEventHandler
+import tempfile
 
 from . import config
 
@@ -118,16 +119,35 @@ class Submitter:
                 dockerlaunch_socket_location
             )
         except Exception as e:
-            logger.debug("Could not open connection to dockerlaunch: %s" % str(e))
+            logger.error("Could not open connection to dockerlaunch at {loc}: {exc}".format(
+                loc=dockerlaunch_socket_location,
+                exc=str(e)
+            ))
             raise e
 
         # Read and write objects for reaching the daemon
         self.reader, self.writer = reader, writer
 
+        try:
+            temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata')
+        except Exception:
+            logger.error("Could not create a temporary directory for docker")
+            raise
+        os.chmod(temporary_directory.name, 0o755)
+
+        tmpdir = temporary_directory.name
+        self._temporary_directory = temporary_directory
+
+        logger.info("Created temporary directory: %s" % tmpdir)
+
         logger.debug("Simulating")
         try:
             # Tell the daemon to fire up an instance
-            self.send_command(writer, 'START', {'image': image, 'update socket': self._socket_location})
+            self.send_command(writer, 'START', {
+                'image': image,
+                'update socket': self._socket_location,
+                'volume location': os.path.basename(temporary_directory)
+            })
             success, message = yield from self.receive_response(reader)
             logger.debug('<-- %s %s' % (str(success), str(message)))
 
@@ -138,16 +158,16 @@ class Submitter:
                 # Set up our basic locations, for accessing the Docker volume
                 if magic_script is not None:
                     magic_script = os.path.join(
-                        message['volume location'],
+                        tmpdir,
                         message['input subdirectory'],
                         magic_script
                     )
                 self._output_directory = os.path.join(
-                    message['volume location'],
+                    tmpdir,
                     message['output subdirectory']
                 )
                 self._input_directory = os.path.join(
-                    message['volume location'],
+                    tmpdir,
                     message['input subdirectory']
                 )
             except KeyError as e:
