@@ -180,7 +180,7 @@ class Submitter:
             self._output_directory = os.path.join(tmpdir, 'output')
 
             # Start watching for output files of interest in the Docker volume
-            event_handler = OutputHandler(self.output_lock, loop=loop)
+            event_handler = OutputHandler(self._output_lock, loop=loop)
             observer = Observer()
             observer.schedule(
                 event_handler,
