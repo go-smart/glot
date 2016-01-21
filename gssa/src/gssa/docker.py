@@ -140,7 +140,9 @@ class Submitter:
 
         input_suffix = 'input'
         input_directory = os.path.join(tmpdir, input_suffix)
-        os.makedirs(input_directory)
+        input_tmp_suffix = '.input.tmp'
+        input_tmp_directory = os.path.join(tmpdir, input_tmp_suffix)
+        os.makedirs(input_tmp_directory)
 
         logger.info("Created temporary directory: %s" % tmpdir)
 
@@ -162,17 +164,12 @@ class Submitter:
                 # Set up our basic locations, for accessing the Docker volume
                 if magic_script is not None:
                     magic_script = os.path.join(
-                        tmpdir,
-                        message['input subdirectory'],
+                        input_tmp_directory,
                         magic_script
                     )
                 self._output_directory = os.path.join(
                     tmpdir,
                     message['output subdirectory']
-                )
-                self._input_directory = os.path.join(
-                    tmpdir,
-                    message['input subdirectory']
                 )
             except KeyError as e:
                 logger.error("Problem setting up Docker")
@@ -192,7 +189,7 @@ class Submitter:
             # Go through each file required by the simulation and put it into
             # the Docker volume
             for f in files_required:
-                to_location = os.path.join(self._input_directory, os.path.basename(f))
+                to_location = os.path.join(input_tmp_directory, os.path.basename(f))
                 from_location = os.path.join(working_directory, 'input', os.path.basename(f))
                 if not f.startswith('.') and not os.path.isdir(to_location):
                     logger.debug("Transferring %s to %s for docker" % (from_location, to_location))
@@ -203,7 +200,7 @@ class Submitter:
                     )
 
             for input_file in self._input_files:
-                shutil.copyfile(input_file, os.path.join(self._input_directory, os.path.basename(input_file)))
+                shutil.copyfile(input_file, os.path.join(input_tmp_directory, os.path.basename(input_file)))
 
             # Once those are copied, we can send the magic script, which tells
             # the instance to start processing. Note that, if the definition was
@@ -214,6 +211,8 @@ class Submitter:
                     f.write(g.read())
 
                 logger.debug("Wrote magic script to %s" % magic_script)
+
+            os.rename(input_tmp_directory, input_directory)
 
             # Wait for the simulation to finish
             self.send_command(writer, 'WAIT', None)
