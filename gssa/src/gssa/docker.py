@@ -44,7 +44,6 @@ class Submitter:
         self._output_files = []
         self._output_directory = None
         self._output_lock = asyncio.Lock()
-        yield from self._output_lock
 
     def __del__(self):
         # Tidy up before quitting
@@ -127,6 +126,8 @@ class Submitter:
 
         # Read and write objects for reaching the daemon
         self.reader, self.writer = reader, writer
+
+        self._output_lock.acquire()
 
         #try:
         #    temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata/')
