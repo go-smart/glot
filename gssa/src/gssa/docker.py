@@ -9,7 +9,7 @@ import os
 logger = logging.getLogger(__name__)
 
 from watchdog.observers import Observer
-from watchdog.events import PatternMatchingEventHandler
+from watchdog.events import FileSystemEventHandler
 from hachiko.hachiko import AIOEventHandler
 import tempfile
 
@@ -19,19 +19,17 @@ default_dockerlaunch_socket_location = '/var/run/docker-launch/docker-launch.soc
 
 
 # Check for output in the Docker volume
-class OutputHandler(AIOEventHandler, PatternMatchingEventHandler):
-    patterns = ['*']
-    ignore_patterns = ['.*']
-
-    def __init__(self, notify_callback, loop=None, **kwargs):
-        self._notify_callback = notify_callback
+class OutputHandler(AIOEventHandler, FileSystemEventHandler):
+    def __init__(self, lock, loop=None, **kwargs):
+        self._lock = lock
 
         AIOEventHandler.__init__(self, loop)
-        PatternMatchingEventHandler.__init__(self, **kwargs)
+        FileSystemEventHandler.__init__(self, **kwargs)
 
     @asyncio.coroutine
-    def on_created(self, event):
-        self._notify_callback(event.src_path)
+    def on_moved(self, event):
+        if event.dest_path.endswith('/output'):
+            self._lock.release()
 
 
 # Submit the request to run an instance to the dockerlaunch daemon, also
@@ -45,6 +43,8 @@ class Submitter:
         self._input_files = []
         self._output_files = []
         self._output_directory = None
+        self._output_lock = asyncio.Lock()
+        yield from self._output_lock
 
     def __del__(self):
         # Tidy up before quitting
@@ -168,16 +168,18 @@ class Submitter:
                         input_tmp_directory,
                         magic_script
                     )
-                self._output_directory = os.path.join(
-                    tmpdir,
-                    message['output subdirectory']
-                )
+                #self._output_directory = os.path.join(
+                #    tmpdir,
+                #    message['output subdirectory']
+                #)
             except KeyError as e:
                 logger.error("Problem setting up Docker")
                 raise e
 
+            self._output_directory = os.path.join(tmpdir, 'output')
+
             # Start watching for output files of interest in the Docker volume
-            event_handler = OutputHandler(self.notify_output, loop=loop)
+            event_handler = OutputHandler(self.output_lock, loop=loop)
             observer = Observer()
             observer.schedule(
                 event_handler,
@@ -231,6 +233,9 @@ class Submitter:
 
             if not success:
                 raise RuntimeError('Could not retrieve logs: %s', message)
+
+            # Wait until the output directory has arrived in this container's volumes
+            yield from self._output_lock
 
             # Get the simulation exit status
             exit_status = self.output(os.path.join('logs', 'exit_status'))
