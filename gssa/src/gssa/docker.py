@@ -138,6 +138,10 @@ class Submitter:
         tmpdir = temporary_directory.name
         self._temporary_directory = temporary_directory
 
+        input_suffix = 'input'
+        input_directory = os.path.join(tmpdir, input_suffix)
+        os.makedirs(input_directory)
+
         logger.info("Created temporary directory: %s" % tmpdir)
 
         logger.debug("Simulating")
