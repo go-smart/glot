@@ -129,7 +129,7 @@ class Submitter:
         self.reader, self.writer = reader, writer
 
         try:
-            temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata')
+            temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata/')
         except Exception:
             logger.error("Could not create a temporary directory for docker")
             raise
