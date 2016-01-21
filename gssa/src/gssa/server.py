@@ -232,7 +232,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
         try:
             # Create a working directory for the simulation (this is needed even
             # if the tool runs elsewhere, as in the Docker case)
-            tmpdir = tempfile.mkdtemp(prefix='gssf-')
+            tmpdir = tempfile.mkdtemp(prefix='/simdata/')
             os.chmod(tmpdir, 0o770)
             logger.debug("Changed permissions")
 

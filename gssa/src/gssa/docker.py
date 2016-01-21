@@ -128,23 +128,24 @@ class Submitter:
         # Read and write objects for reaching the daemon
         self.reader, self.writer = reader, writer
 
-        try:
-            temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata/')
-        except Exception:
-            logger.error("Could not create a temporary directory for docker")
-            raise
-        os.chmod(temporary_directory.name, 0o755)
+        #try:
+        #    temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata/')
+        #except Exception:
+        #    logger.error("Could not create a temporary directory for docker")
+        #    raise
+        #os.chmod(temporary_directory.name, 0o755)
 
-        tmpdir = temporary_directory.name
-        self._temporary_directory = temporary_directory
+        #tmpdir = temporary_directory.name
+        tmpdir = working_directory
+        #self._temporary_directory = temporary_directory
 
-        input_suffix = 'input'
+        input_suffix = 'input.final'
         input_directory = os.path.join(tmpdir, input_suffix)
-        input_tmp_suffix = '.input.tmp'
+        input_tmp_suffix = 'input'
         input_tmp_directory = os.path.join(tmpdir, input_tmp_suffix)
         os.makedirs(input_tmp_directory)
 
-        logger.info("Created temporary directory: %s" % tmpdir)
+        #logger.info("Created temporary directory: %s" % tmpdir)
 
         logger.debug("Simulating")
         try:
@@ -188,19 +189,19 @@ class Submitter:
 
             # Go through each file required by the simulation and put it into
             # the Docker volume
-            for f in files_required:
-                to_location = os.path.join(input_tmp_directory, os.path.basename(f))
-                from_location = os.path.join(working_directory, 'input', os.path.basename(f))
-                if not f.startswith('.') and not os.path.isdir(to_location):
-                    logger.debug("Transferring %s to %s for docker" % (from_location, to_location))
+            #for f in files_required:
+            #    to_location = os.path.join(input_tmp_directory, os.path.basename(f))
+            #    from_location = os.path.join(working_directory, 'input', os.path.basename(f))
+            #    if not f.startswith('.') and not os.path.isdir(to_location):
+            #        logger.debug("Transferring %s to %s for docker" % (from_location, to_location))
 
-                    shutil.copyfile(
-                        from_location,
-                        to_location,
-                    )
+            #        shutil.copyfile(
+            #            from_location,
+            #            to_location,
+            #        )
 
-            for input_file in self._input_files:
-                shutil.copyfile(input_file, os.path.join(input_tmp_directory, os.path.basename(input_file)))
+            #for input_file in self._input_files:
+            #    shutil.copyfile(input_file, os.path.join(input_tmp_directory, os.path.basename(input_file)))
 
             # Once those are copied, we can send the magic script, which tells
             # the instance to start processing. Note that, if the definition was
