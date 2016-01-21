@@ -282,7 +282,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
         try:
             success = yield from current.simulate()
         except Exception as e:
-            logger.exception("Simulation failed! {exc}".format(e))
+            logger.exception("Simulation failed! {exc}".format(exc=e))
             yield from self.eventFail(guid, makeError(Error.E_SERVER, "[%s] %s" % (type(e), str(e))))
             success = None
 
