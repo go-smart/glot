@@ -143,7 +143,7 @@ class Submitter:
         input_directory = os.path.join(tmpdir, input_suffix)
         input_tmp_suffix = 'input'
         input_tmp_directory = os.path.join(tmpdir, input_tmp_suffix)
-        os.makedirs(input_tmp_directory)
+        #os.makedirs(input_tmp_directory)
 
         #logger.info("Created temporary directory: %s" % tmpdir)
 
