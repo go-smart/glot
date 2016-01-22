@@ -129,7 +129,7 @@ class Submitter:
 
         # Lock the lock so that when we grab it again, it will hold until the output dir has
         # appeared (FIXME: needs timeout)
-        yield from self._output_lock
+        #yield from self._output_lock
 
         #try:
         #    temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata/')
