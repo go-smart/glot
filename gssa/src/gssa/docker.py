@@ -129,7 +129,7 @@ class Submitter:
 
         # Lock the lock so that when we grab it again, it will hold until the output dir has
         # appeared (FIXME: needs timeout)
-        #yield from self._output_lock
+        yield from self._output_lock
 
         #try:
         #    temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata/')
@@ -180,6 +180,8 @@ class Submitter:
                 raise e
 
             self._output_directory = os.path.join(tmpdir, 'output')
+                logger.debug("Wrote magic script to %s" % magic_script)
+            logger.debug("Set magic script")
 
             # Start watching for output files of interest in the Docker volume
             event_handler = OutputHandler(self._output_lock, loop=loop)
@@ -190,7 +192,8 @@ class Submitter:
                 recursive=True
             )
             # FIXME: this causes occasional spontaneous segfaults during file updating... diagnosis pending
-            # observer.start()
+            observer.start()
+            logger.debug("Started observer")
 
             # Go through each file required by the simulation and put it into
             # the Docker volume
