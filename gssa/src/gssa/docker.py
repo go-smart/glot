@@ -127,7 +127,9 @@ class Submitter:
         # Read and write objects for reaching the daemon
         self.reader, self.writer = reader, writer
 
-        self._output_lock.acquire()
+        # Lock the lock so that when we grab it again, it will hold until the output dir has
+        # appeared (FIXME: needs timeout)
+        yield from self._output_lock
 
         #try:
         #    temporary_directory = tempfile.TemporaryDirectory(prefix='/simdata/')
