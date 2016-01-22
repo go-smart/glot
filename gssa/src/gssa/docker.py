@@ -187,8 +187,7 @@ class Submitter:
             observer = Observer()
             observer.schedule(
                 event_handler,
-                self._output_directory,
-                recursive=True
+                tmpdir
             )
             # FIXME: this causes occasional spontaneous segfaults during file updating... diagnosis pending
             observer.start()
