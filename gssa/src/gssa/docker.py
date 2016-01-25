@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from hachiko.hachiko import AIOEventHandler
-import tempfile
 
 from . import config
 

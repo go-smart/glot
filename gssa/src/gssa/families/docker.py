@@ -133,5 +133,5 @@ class DockerFamily(Family):
 
     def retrieve_files(self, destination):
         for f in self._retrievable_files:
-            logging.debug(f, '->', destination)
+            logging.debug("{fm} -> {to}".format(fm=f, to=destination))
             logging.debug(self._submitter.copy_output(f, destination))
