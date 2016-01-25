@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from gssa.families.docker import DockerFamily
+from gssa.family import Family
 from gssa.parameters import convert_parameter
 
 
@@ -31,9 +31,8 @@ from gssa.families.gssf_arguments import GoSmartSimulationFrameworkArguments
 from gssa.families.mesher_gssf import MesherGSSFMixin
 
 
-class ElmerLibNumaFamily(DockerFamily, MesherGSSFMixin):
-    family_name = "elmer-libnuma-docker"
-    _docker_image = 'numaengineering/gssf'
+class ElmerLibNumaLegacyFamily(Family, MesherGSSFMixin):
+    family_name = "elmer-libnuma-legacy"
 
     _disallowed_functions = (
         "funcdel",
@@ -58,14 +57,11 @@ class ElmerLibNumaFamily(DockerFamily, MesherGSSFMixin):
     _xml = None
     _validation_file = None
 
-    def __init__(self, files_required, *args, **kwargs):
+    def __init__(self, files_required):
         self._needles = {}
         self._needle_order = {}
         self._files_required = files_required
         self._args = GoSmartSimulationFrameworkArguments(configfilenames=["settings.xml"])
-        self._retrievable_files += ['lesion_surface.vtp', 'output.vtu']
-
-        super().__init__(files_required, *args, **kwargs)
 
     def get_percentage_socket_location(self, working_directory):
         return os.path.join(working_directory, 'update.sock')
@@ -93,7 +89,7 @@ class ElmerLibNumaFamily(DockerFamily, MesherGSSFMixin):
         return convert_parameter(parameter, typ, try_json)
 
     @asyncio.coroutine
-    def prepare_simulation(self, working_directory):
+    def simulate(self, working_directory):
         try:
             translated_xml = self.to_xml()
         except RuntimeError as e:
@@ -105,9 +101,19 @@ class ElmerLibNumaFamily(DockerFamily, MesherGSSFMixin):
         with open(os.path.join(working_directory, "settings.xml"), "wb") as f:
             tree.write(f, pretty_print=True)
 
+        self._args.status_socket = self.get_percentage_socket_location(working_directory)
+        args = ["go-smart-launcher"] + self._args.to_list()
+
+        task = yield from asyncio.create_subprocess_exec(
+            *[a for a in args if a not in ('stdin', 'stdout', 'stderr')],
+            cwd=working_directory
+        )
+
+        yield from task.wait()
+
         self._simulation_directory = working_directory
 
-        return True
+        return task.returncode == 0
 
     @asyncio.coroutine
     def validation(self, working_directory=None):
