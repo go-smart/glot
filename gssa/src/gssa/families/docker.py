@@ -94,10 +94,16 @@ class DockerFamily(Family):
         magic_script = None
 
         if self._definition is not None:
-            declared_parameters, python_script = self._definition.split("\n==========ENDPARAMETERS========\n")
+            try:
+                declared_parameters, python_script = self._definition.split("\n==========ENDPARAMETERS========\n")
+            except ValueError:
+                files = (('start.py', python_script), ('parameters.yml', declared_parameters))
+            else:
+                files = (('start.py', python_script),)
+
             tar = tarfile.open(os.path.join(working_directory, definition_tar), "w:gz")
 
-            for name, content in (('start.py', python_script), ('parameters.yml', declared_parameters)):
+            for name, content in files:
                 encoded_definition = content.encode('utf-8')
                 stringio = io.BytesIO(encoded_definition)
                 info = tarfile.TarInfo(name=name)
