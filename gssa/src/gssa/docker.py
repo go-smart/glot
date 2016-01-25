@@ -62,6 +62,10 @@ class Submitter:
 
         try:
             shutil.copyfile(requested_location, target_location)
+        except shutil.SameFileError:
+            # This is likely to be the case if we mount the output directory
+            # to the bridge
+            pass
         except:
             logger.exception('Could not copy output')
             return None
