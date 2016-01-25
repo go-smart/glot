@@ -97,9 +97,9 @@ class DockerFamily(Family):
             try:
                 declared_parameters, python_script = self._definition.split("\n==========ENDPARAMETERS========\n")
             except ValueError:
-                files = (('start.py', python_script), ('parameters.yml', declared_parameters))
+                files = (('start.py', self._definition),)
             else:
-                files = (('start.py', python_script),)
+                files = (('start.py', python_script), ('parameters.yml', declared_parameters))
 
             tar = tarfile.open(os.path.join(working_directory, definition_tar), "w:gz")
 
