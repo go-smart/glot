@@ -1,5 +1,7 @@
-Go-Smart Simulation Architecture (GSSA)
-=======================================
+Glossia (aka. GSSA)
+===================
+The Go-Smart Simulation Architecture
+-------------------------------------------
 
 **Primary authors** : [NUMA Engineering Services Ltd](http://www.numa.ie) (NUMA), Dundalk, Ireland
 
