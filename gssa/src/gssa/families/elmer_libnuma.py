@@ -102,7 +102,7 @@ class ElmerLibNumaFamily(DockerFamily, MesherGSSFMixin):
 
         tree = ET.ElementTree(translated_xml)
 
-        settings_xml = os.path.join(working_directory, 'settings.xml')
+        settings_xml = os.path.join(working_directory, 'input', 'settings.xml')
         with open(settings_xml, 'wb') as f:
             tree.write(f, pretty_print=True)
 
