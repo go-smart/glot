@@ -102,8 +102,11 @@ class ElmerLibNumaFamily(DockerFamily, MesherGSSFMixin):
 
         tree = ET.ElementTree(translated_xml)
 
-        with open(os.path.join(working_directory, "settings.xml"), "wb") as f:
+        settings_xml = os.path.join(working_directory, 'input', 'settings.xml')
+        with open(settings_xml, 'wb') as f:
             tree.write(f, pretty_print=True)
+
+        self._files_required[os.path.join('input', 'settings.xml')] = settings_xml
 
         self._simulation_directory = working_directory
 

@@ -24,7 +24,7 @@ import tarfile
 import tempfile
 import logging
 
-logger = logger.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 # This should be adjusted when this issue resolution hits PIP: https://github.com/tavendo/AutobahnPython/issues/332
