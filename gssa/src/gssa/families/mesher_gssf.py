@@ -60,42 +60,42 @@ class MesherGSSFMixin:
             tree = ET.ElementTree(translated_xml)
 
             # Write out the GSSF-XML file
-            with open(os.path.join(working_directory, "settings.xml"), "wb") as f:
+            with open(os.path.join(working_directory, "input", "settings.xml"), "wb") as f:
                 tree.write(f, pretty_print=True)
 
-            # Set up the arguments for GSL
-            args = ["go-smart-launcher"] + self._args.to_list()
+            ## Set up the arguments for GSL
+            #args = ["go-smart-launcher"] + self._args.to_list()
 
-            # Launch
-            task = yield from asyncio.create_subprocess_exec(
-                *[a for a in args if a not in ('stdin', 'stdout', 'stderr')],
-                cwd=working_directory
-            )
+            ## Launch
+            #task = yield from asyncio.create_subprocess_exec(
+            #    *[a for a in args if a not in ('stdin', 'stdout', 'stderr')],
+            #    cwd=working_directory
+            #)
 
-            # Hold off until meshing is complete
-            yield from task.wait()
+            ## Hold off until meshing is complete
+            #yield from task.wait()
 
-            # Pick out the relevant mesher output
-            msh_input = os.path.join(working_directory, "mesher", "elmer_libnuma.msh")
-            mesh_labelling_yaml = os.path.join(working_directory, "mesher", "mesh_labelling.yml")
-            shutil.copyfile(msh_input, input_msh)
-            shutil.copyfile(mesh_labelling_yaml, labelling_yaml)
+            ## Pick out the relevant mesher output
+            #msh_input = os.path.join(working_directory, "mesher", "elmer_libnuma.msh")
+            #mesh_labelling_yaml = os.path.join(working_directory, "mesher", "mesh_labelling.yml")
+            #shutil.copyfile(msh_input, input_msh)
+            #shutil.copyfile(mesh_labelling_yaml, labelling_yaml)
 
-            # Check for success from GSSF mesher-cgal
-            success = (task.returncode == 0)
+            ## Check for success from GSSF mesher-cgal
+            #success = (task.returncode == 0)
 
-            # Update the regions based on this regions file
-            with open(labelling_yaml, "r") as f:
-                mesh_labelling = yaml.load(f)
+            ## Update the regions based on this regions file
+            #with open(labelling_yaml, "r") as f:
+            #    mesh_labelling = yaml.load(f)
 
-            regions = mesh_labelling.copy()
-            regions.update(self._regions)
-            for k, v in regions.items():
-                if k in mesh_labelling:
-                    v.update(mesh_labelling[k])
-            self._regions = regions
+            #regions = mesh_labelling.copy()
+            #regions.update(self._regions)
+            #for k, v in regions.items():
+            #    if k in mesh_labelling:
+            #        v.update(mesh_labelling[k])
+            #self._regions = regions
 
-        self._files_required["input.msh"] = input_msh
+        #self._files_required["input.msh"] = input_msh
 
         return success
 
