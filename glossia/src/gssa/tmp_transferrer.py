@@ -53,8 +53,10 @@ class TmpTransferrer:
                 logger.error("Could not extract %s" % temp_archive)
                 raise e
 
+            member_names = [m.name for m in members]
             for local, remote in files.items():
-                files[local] = os.path.join(temp_directory, remote)
+                if remote in member_names:
+                    files[local] = os.path.join(temp_directory, remote)
         # If no archive, then we expect /tmp/{remote_root} to give us the
         # location
         else:
