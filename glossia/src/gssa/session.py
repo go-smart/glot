@@ -41,18 +41,22 @@ class GoSmartSimulationServerSession(ApplicationSession):
         ApplicationSession.__init__(self, x)
 
     # com.gosmartsimulation.init - dummy call for the moment
+    @asyncio.coroutine
     def doInit(self, guid):
         return self._component.doInit(guid)
 
     # com.gosmartsimulation.clean - remove anything in simulation working
     # directory, for instance
+    @asyncio.coroutine
     def doClean(self, guid):
         return self._component.doClean(guid)
 
     # com.gosmartsimulation.start - execute the simulation in a coro
+    @asyncio.coroutine
     def doStart(self, guid):
         return self._component.doStart(guid)
 
+    @asyncio.coroutine
     def doTmpValidation(self, guid, directory):
         # RMV: This is hacky
         return self._component.doTmpValidation(directory)
@@ -60,42 +64,43 @@ class GoSmartSimulationServerSession(ApplicationSession):
     # com.gosmartsimulation.update_files - add the passed files to the
     # simulation's reference dictionary of required input files (available to be
     # requested later)
+    @asyncio.coroutine
     def doUpdateFiles(self, guid, files):
         return self._component.doUpdateFiles(guid, files)
 
     # com.gosmartsimulation.request_files - push the requested output files
     # through the transferrer and return the list that was sent
+    @asyncio.coroutine
     def doRequestFiles(self, guid, files):
         return self._component.doRequestFiles(guid, files)
 
     # com.gosmartsimulation.compare - check whether two GSSA-XML files match
     # and, if not, what their differences are
+    @asyncio.coroutine
     def doCompare(self, this_xml, that_xml):
         return self._component.doCompare(this_xml, that_xml)
 
     # com.gosmartsimulation.update_settings_xml - set the GSSA-XML for a given
     # simulation
+    @asyncio.coroutine
     def doUpdateSettingsXml(self, guid, xml):
         return self._component.doUpdateSettingsXml(guid, xml)
 
-    # Start the simulation. This occurs in a separately scheduled coro from the
-    # RPC call so it will almost certainly have returned by time we do
-    @asyncio.coroutine
-    def doSimulate(self, guid):
-        return self._component.doSimulate(guid)
-
     # com.gosmartsimulation.finalize - do any remaining preparation before the
     # simulation can start
+    @asyncio.coroutine
     def doFinalize(self, guid, client_directory_prefix):
         return self._component.doFinalize(guid, client_directory_prefix)
 
     # com.gosmartsimulation.properties - return important server-side simulation
     # properties
+    @asyncio.coroutine
     def doProperties(self, guid):
         return self._component.doProperties(guid)
 
     # com.gosmartsimulation.retrieve_status - get the latest status for a
     # simulation
+    @asyncio.coroutine
     def doRetrieveStatus(self, guid):
         return self._component.doRetrieveStatus(guid)
 

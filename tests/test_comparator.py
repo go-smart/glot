@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 from gssa.comparator import Comparator
 from collections import Counter
 from lxml.etree import XMLSyntaxError

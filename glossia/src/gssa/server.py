@@ -51,11 +51,7 @@ class GoSmartSimulationServerComponent(object):
     client = None
     _db = None
 
-    def __init__(self, server_id, database, publish_cb, ignore_development=False):
-        global use_observant
-
-        # Grab the config
-
+    def __init__(self, server_id, database, publish_cb, ignore_development=False, use_observant=use_observant):
         # This forwards exceptions to the client
         self.traceback_app = True
 
@@ -107,11 +103,13 @@ class GoSmartSimulationServerComponent(object):
         self._db.markAllOld()
 
     # com.gosmartsimulation.init - dummy call for the moment
+    @asyncio.coroutine
     def doInit(self, guid):
         return True
 
     # com.gosmartsimulation.clean - remove anything in simulation working
     # directory, for instance
+    @asyncio.coroutine
     def doClean(self, guid):
         if guid not in self.current:
             return False
@@ -123,6 +121,7 @@ class GoSmartSimulationServerComponent(object):
         return result
 
     # com.gosmartsimulation.start - execute the simulation in a coro
+    @asyncio.coroutine
     def doStart(self, guid):
         if guid not in self.current:
             return False
@@ -139,6 +138,7 @@ class GoSmartSimulationServerComponent(object):
 
         return True
 
+    # DEPRECATED
     def doTmpValidation(self, guid, directory):
         # RMV: This is hacky
         loop = asyncio.get_event_loop()
@@ -189,6 +189,7 @@ class GoSmartSimulationServerComponent(object):
     # com.gosmartsimulation.update_files - add the passed files to the
     # simulation's reference dictionary of required input files (available to be
     # requested later)
+    @asyncio.coroutine
     def doUpdateFiles(self, guid, files):
         if guid not in self.current or not isinstance(files, dict):
             return False
@@ -204,6 +205,7 @@ class GoSmartSimulationServerComponent(object):
 
     # com.gosmartsimulation.request_files - push the requested output files
     # through the transferrer and return the list that was sent
+    @asyncio.coroutine
     def doRequestFiles(self, guid, files):
         if guid not in self.current or not isinstance(files, dict):
             return {}
@@ -220,12 +222,14 @@ class GoSmartSimulationServerComponent(object):
 
     # com.gosmartsimulation.compare - check whether two GSSA-XML files match
     # and, if not, what their differences are
+    @asyncio.coroutine
     def doCompare(self, this_xml, that_xml):
         comparator = Comparator(this_xml, that_xml)
         return comparator.diff()
 
     # com.gosmartsimulation.update_settings_xml - set the GSSA-XML for a given
     # simulation
+    @asyncio.coroutine
     def doUpdateSettingsXml(self, guid, xml):
         try:
             # Create a working directory for the simulation (this is needed even
@@ -288,6 +292,7 @@ class GoSmartSimulationServerComponent(object):
 
     # com.gosmartsimulation.finalize - do any remaining preparation before the
     # simulation can start
+    @asyncio.coroutine
     def doFinalize(self, guid, client_directory_prefix):
         logger.debug("Converting the Xml")
         if guid not in self.current:
@@ -306,6 +311,7 @@ class GoSmartSimulationServerComponent(object):
 
     # com.gosmartsimulation.properties - return important server-side simulation
     # properties
+    @asyncio.coroutine
     def doProperties(self, guid):
         return self.getProperties(guid)
 
@@ -369,6 +375,7 @@ class GoSmartSimulationServerComponent(object):
 
     # com.gosmartsimulation.retrieve_status - get the latest status for a
     # simulation
+    @asyncio.coroutine
     def doRetrieveStatus(self, guid):
         # Get this from the DB, not current, as the DB should give a consistent
         # answer even after restart (unless marked unfinished)
@@ -503,30 +510,3 @@ class GoSmartSimulationServerComponent(object):
         except Exception as e:
             logger.error("Didn't send score!")
             raise e
-
-    # Fired when we first join the router - this gives us a chance to register
-    # everything
-    def onJoin(self, details):
-        logger.info("session ready")
-
-        # Register an us-specific set of RPC calls. Also attempts to do the same
-        # for the generic set, if we haven't been beaten to the punch
-        try:
-            for i in ('.' + self.server_id, ''):
-                self.subscribe(self.onRequestAnnounce, u'com.gosmartsimulation%s.request_announce' % i)
-                self.subscribe(self.onRequestIdentify, u'com.gosmartsimulation%s.request_identify' % i)
-
-                self.register(self.doInit, u'com.gosmartsimulation%s.init' % i)
-                self.register(self.doStart, u'com.gosmartsimulation%s.start' % i)
-                self.register(self.doUpdateSettingsXml, u'com.gosmartsimulation%s.update_settings_xml' % i)
-                self.register(self.doUpdateFiles, u'com.gosmartsimulation%s.update_files' % i)
-                self.register(self.doRequestFiles, u'com.gosmartsimulation%s.request_files' % i)
-                self.register(self.doTmpValidation, u'com.gosmartsimulation%s.tmp_validation' % i)
-                self.register(self.doFinalize, u'com.gosmartsimulation%s.finalize' % i)
-                self.register(self.doClean, u'com.gosmartsimulation%s.clean' % i)
-                self.register(self.doCompare, u'com.gosmartsimulation%s.compare' % i)
-                self.register(self.doProperties, u'com.gosmartsimulation%s.properties' % i)
-                self.register(self.doRetrieveStatus, u'com.gosmartsimulation%s.retrieve_status' % i)
-            logger.info("procedure registered")
-        except Exception as e:
-            logger.warning("could not register procedure: {0}".format(e))
