@@ -41,12 +41,13 @@ def wrapped_coroutine(f):
 class GoSmartSimulationClientComponent(ApplicationSession):
 
     # Accept arguments from the command line
-    def __init__(self, x, gssa_file, subdirectory, output_files, input_files=None, definition_files=None, skip_clean=False, server=None):
+    def __init__(self, x, gssa_file, subdirectory, output_files, tmp_transferrer='/tmp', input_files=None, definition_files=None, skip_clean=False, server=None):
         ApplicationSession.__init__(self, x)
         self._gssa = ET.parse(gssa_file)
         self._definition_files = definition_files
         self._input_files = input_files
         self._server = server
+        self._tmp_transferrer = tmp_transferrer
 
         # We tar the definition files into one object for transferring and add
         # it to the definition node
@@ -60,7 +61,10 @@ class GoSmartSimulationClientComponent(ApplicationSession):
             self._definition_tmp.flush()
             logger.debug("Made temporary tar at %s" % self._definition_tmp.name)
             definition_node = self._gssa.find('.//definition')
-            definition_node.set('location', self._definition_tmp.name)
+            location_remote = os.path.join('/tmp', 'gssa-transferrer', os.path.basename(self._definition_tmp.name))
+            location_local = os.path.join(self._tmp_transferrer, os.path.basename(self._definition_tmp.name))
+            definition_node.set('location', location_remote)
+            os.rename(self._definition_tmp.name, location_local)
 
         # Do the same with the input surfaces
         if self._input_files is not None:
@@ -73,7 +77,10 @@ class GoSmartSimulationClientComponent(ApplicationSession):
             self._input_tmp.flush()
             logger.debug("Made temporary tar at %s" % self._input_tmp.name)
             input_node = ET.SubElement(self._gssa.find('.//transferrer'), 'input')
-            input_node.set('location', self._input_tmp.name)
+            location_remote = os.path.join('/tmp', 'gssa-transferrer', os.path.basename(self._input_tmp.name))
+            location_local = os.path.join(self._tmp_transferrer, os.path.basename(self._input_tmp.name))
+            input_node.set('location', location_remote)
+            os.rename(self._input_tmp.name, location_local)
 
         # Generate a simulation ID
         self._guid = uuid.uuid1()
@@ -121,7 +128,7 @@ class GoSmartSimulationClientComponent(ApplicationSession):
 
         # Request files from the tmp transferrer
         files = yield from self.call(self.make_call('request_files'), guid, {
-            f: os.path.join('/tmp', f) for f in self._output_files
+            f: os.path.join('/tmp', 'gssa-transferrer', f) for f in self._output_files
         })
         logger.debug(files)
         yield from self.finalize(guid)

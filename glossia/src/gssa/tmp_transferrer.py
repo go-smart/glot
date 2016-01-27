@@ -59,7 +59,7 @@ class TmpTransferrer:
         # location
         else:
             for local, remote in files.items():
-                files[local] = os.path.join('/tmp', remote_root, remote)
+                files[local] = os.path.join('/tmp', 'gssa-transferrer', remote_root, remote)
 
         # Copy them to where we were asked
         for local, remote in files.items():
@@ -76,7 +76,7 @@ class TmpTransferrer:
             absolute_path = os.path.join(root, local)
             remote_absolute_path = os.path.join(remote_root, remote)
             logger.debug("Putting %s %s" % (absolute_path, remote_absolute_path))
-            shutil.copy(absolute_path, os.path.join('/tmp', remote_absolute_path))
+            shutil.copy(absolute_path, os.path.join('/tmp', 'gssa-transferrer', remote_absolute_path))
 
     def configure_from_xml(self, xml):
         for node in xml:

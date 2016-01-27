@@ -30,6 +30,7 @@ def launch(x):
         x,
         gssa_file=input_file,
         subdirectory=subdirectory,
+        tmp_transferrer=tmp_transferrer,
         output_files=output_files,
         definition_files=definition_files,
         input_files=input_files,
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     parser.add_argument("--definition", help="file(s) containing module / text of the definition node (which should exist but be empty in the GSSA file)", default=None, nargs='+')
     parser.add_argument("--input", help="input files for surfaces, etc.", default=None, nargs='+')
     parser.add_argument("--server", help="specific server to contact (UUID)", default=None)
+    parser.add_argument("--tmp", help="location of the mounted transferrer directory", default='/tmp')
     args = parser.parse_args()
     input_file = args.gssa_file
 
@@ -62,6 +64,7 @@ if __name__ == "__main__":
     server = args.server
     input_files = args.input
     skip_clean = args.skip_clean
+    tmp_transferrer = args.tmp
 
     # Instantiate an ApplicationRunner, that will make the WAMP connection and
     # call our launch function once all is well
