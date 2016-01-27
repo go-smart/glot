@@ -23,6 +23,7 @@ import os
 import tarfile
 import tempfile
 import logging
+import stat
 
 logger = logging.getLogger(__name__)
 
@@ -52,35 +53,41 @@ class GoSmartSimulationClientComponent(ApplicationSession):
         # We tar the definition files into one object for transferring and add
         # it to the definition node
         if self._definition_files is not None:
-            self._definition_tmp = tempfile.NamedTemporaryFile(suffix='.tar.gz')
+            self._definition_tmp = tempfile.NamedTemporaryFile(suffix='.tar.gz', dir=self._tmp_transferrer)
             definition_tar = tarfile.open(fileobj=self._definition_tmp, mode='w:gz')
             for definition_file in self._definition_files:
                 definition_tar.add(definition_file, os.path.basename(definition_file))
                 logger.debug("Added [%s]" % os.path.basename(definition_file))
             definition_tar.close()
             self._definition_tmp.flush()
+
+            # Note that this makes the file global readable - we assume the
+            # parent of the tmp directory is used to control permissions
+            os.chmod(self._definition_tmp.name, stat.S_IROTH | stat.S_IRGRP | stat.S_IRUSR)
+
             logger.debug("Made temporary tar at %s" % self._definition_tmp.name)
             definition_node = self._gssa.find('.//definition')
             location_remote = os.path.join('/tmp', 'gssa-transferrer', os.path.basename(self._definition_tmp.name))
-            location_local = os.path.join(self._tmp_transferrer, os.path.basename(self._definition_tmp.name))
             definition_node.set('location', location_remote)
-            os.rename(self._definition_tmp.name, location_local)
 
         # Do the same with the input surfaces
         if self._input_files is not None:
-            self._input_tmp = tempfile.NamedTemporaryFile(suffix='.tar.gz')
+            self._input_tmp = tempfile.NamedTemporaryFile(suffix='.tar.gz', dir=self._tmp_transferrer)
             input_tar = tarfile.open(fileobj=self._input_tmp, mode='w:gz')
             for input_file in self._input_files:
                 input_tar.add(input_file, os.path.basename(input_file))
                 logger.debug("Added [%s]" % os.path.basename(input_file))
             input_tar.close()
             self._input_tmp.flush()
+
+            # Note that this makes the file global readable - we assume the
+            # parent of the tmp directory is used to control permissions
+            os.chmod(self._input_tmp.name, stat.S_IROTH | stat.S_IRGRP | stat.S_IRUSR)
+
             logger.debug("Made temporary tar at %s" % self._input_tmp.name)
             input_node = ET.SubElement(self._gssa.find('.//transferrer'), 'input')
             location_remote = os.path.join('/tmp', 'gssa-transferrer', os.path.basename(self._input_tmp.name))
-            location_local = os.path.join(self._tmp_transferrer, os.path.basename(self._input_tmp.name))
             input_node.set('location', location_remote)
-            os.rename(self._input_tmp.name, location_local)
 
         # Generate a simulation ID
         self._guid = uuid.uuid1()
