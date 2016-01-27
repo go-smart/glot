@@ -18,7 +18,6 @@
 # This is a workaround for syntastic lack of Py3 recognition
 
 import asyncio
-from autobahn.asyncio.wamp import ApplicationSession
 
 import os
 import socket
@@ -47,15 +46,13 @@ from .config import etc_location
 
 
 # This subclasses ApplicationSession, which runs inside an Autobahn WAMP session
-class GoSmartSimulationServerComponent(ApplicationSession):
+class GoSmartSimulationServerComponent(object):
     current = None
     client = None
     _db = None
 
-    def __init__(self, x, server_id, database, ignore_development=False):
+    def __init__(self, server_id, database, publish_cb, ignore_development=False):
         global use_observant
-
-        ApplicationSession.__init__(self, x)
 
         # Grab the config
 
@@ -64,6 +61,7 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
         self.server_id = server_id
         self.current = {}
+        self.publish = publish_cb
         # Flag that tells the server to ignore anything with a parameter
         # `DEVELOPMENT` true
         self._ignore_development = ignore_development
@@ -318,15 +316,6 @@ class GoSmartSimulationServerComponent(ApplicationSession):
 
         return {"location": self.current[guid].get_dir()}
 
-    # DEPRECATED: do whole workflow
-    def doWorkflow(self, guid, xml, input_files, request_files):
-        logger.debug("WorkflowStarted")
-        self.doInit(self, guid)
-        self.doUpdateSettingsXml(self, guid, xml)
-        self.doUpdateFiles(self, guid, input_files)
-        self.doRequestFiles(self, guid, request_files)
-        self.doFinalize(self, guid, '')
-
     # Called when simulation completes - publishes a completion event
     @asyncio.coroutine
     def eventComplete(self, guid):
@@ -536,7 +525,6 @@ class GoSmartSimulationServerComponent(ApplicationSession):
                 self.register(self.doFinalize, u'com.gosmartsimulation%s.finalize' % i)
                 self.register(self.doClean, u'com.gosmartsimulation%s.clean' % i)
                 self.register(self.doCompare, u'com.gosmartsimulation%s.compare' % i)
-                self.register(self.doWorkflow, u'com.gosmartsimulation%s.workflow' % i)
                 self.register(self.doProperties, u'com.gosmartsimulation%s.properties' % i)
                 self.register(self.doRetrieveStatus, u'com.gosmartsimulation%s.retrieve_status' % i)
             logger.info("procedure registered")
