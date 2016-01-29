@@ -34,8 +34,9 @@ class TmpTransferrer:
             temp_directory = tempfile.gettempdir()
             temp_archive = os.path.join(temp_directory, 'input.tar.gz')
 
+            short_files = {}
             for k, v in files.items():
-                files[k] = os.path.basename(v)
+                short_files[k] = os.path.basename(v)
 
             try:
                 shutil.copy(self._input_archive, temp_archive)
@@ -47,7 +48,7 @@ class TmpTransferrer:
             # names in our pull list. We do this to a temporary directory
             try:
                 with tarfile.open(temp_archive, 'r:gz') as tar_file:
-                    members = [m for m in tar_file.getmembers() if m.name in files.values()]
+                    members = [m for m in tar_file.getmembers() if m.name in short_files.values()]
                     tar_file.extractall(temp_directory, members)
             except FileNotFoundError as e:
                 logger.error("Could not extract %s" % temp_archive)
