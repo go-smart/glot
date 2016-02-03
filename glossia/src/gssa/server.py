@@ -128,10 +128,7 @@ class GoSmartSimulationServerComponent(object):
 
         loop = asyncio.get_event_loop()
         coro = self.doSimulate(guid)
-        try:
-            task = loop.create_task(coro)
-        except AttributeError:
-            task = asyncio.async(coro, loop=loop)
+        task = loop.create_task(coro)
 
         # Once the simulation has completed, we must handle it
         task.add_done_callback(lambda f: asyncio.async(self._handle_simulation_done(f, guid=guid)))

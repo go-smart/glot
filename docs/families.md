@@ -14,7 +14,9 @@ workflow, and [FEniCS](docker/fenics.md), which depends on pre-meshing by
 the [GSSF CGAL mesher component](https://go-smart.github.io/gssf/mesher/).
 
 To find families, the `gssa.family` module scans for files in the directory of
-the `gssa.families` module. **TODO**: extend this to user-configurable locations.
+the `gssa.families` module.
+
+**TODO**: extend this to user-configurable locations.
 
 **Note**: family modules are run as part of the Python server - this means they
 are privileged and should only be included from highly *trusted* sources, as

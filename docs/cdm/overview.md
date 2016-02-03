@@ -1,5 +1,3 @@
 # Go-Smart Clinical Domain Model
 
-The Clinical
-
-## Algorithms
+Only the parts of the theoretical domain model directly relevant to the simulation server code are described here.

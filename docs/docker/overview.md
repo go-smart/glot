@@ -8,7 +8,7 @@ currently two Docker workflows: one entirely inside Docker and one using
 ## Definition
 
 Definitions for families in this workflow should include a `start.py` file. This
-will be called with Python2 (TODO: Python3) in an environment containing the
+will be called with Python in an environment containing the
 [Python container module](container-module.md).
 
 ## Variants

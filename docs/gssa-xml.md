@@ -26,7 +26,8 @@ tree. However, to provide a human-readable resource, it is described also here:
             ...
         </needles>
         <regions>
-            <region id="RID" name="RNAME" format="RFORMAT:(zone|surface|both)" input="RINPUT" groups="RGROUPS" />
+            <region id="RID" name="RNAME" format="RFORMAT:(zone|surface|both)"
+                input="RINPUT" groups="RGROUPS" />
             ...
         </regions>
         <definition name="DFAMILY" [ file="DFILE" ]>
