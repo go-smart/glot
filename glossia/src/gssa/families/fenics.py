@@ -23,7 +23,7 @@ from gssa.families.mesher_gssf import MesherGSSFMixin
 
 class FenicsFamily(DockerFamily, MesherGSSFMixin):
     family_name = "fenics"
-    _docker_image = 'gosmart/fenics-stable-ppa'
+    _docker_image = 'gosmart/glossia-fenics'
 
     def __init__(self, files_required):
         super().__init__(files_required)

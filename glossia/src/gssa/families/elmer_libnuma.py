@@ -33,7 +33,7 @@ from gssa.families.mesher_gssf import MesherGSSFMixin
 
 class ElmerLibNumaFamily(DockerFamily, MesherGSSFMixin):
     family_name = "elmer-libnuma"
-    _docker_image = 'numaengineering/gssf'
+    _docker_image = 'gosmart/glossia-goosefoot'
 
     _disallowed_functions = (
         "funcdel",
