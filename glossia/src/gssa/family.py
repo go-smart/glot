@@ -123,7 +123,7 @@ class Family(metaclass=FamilyType):
 
         # If the definition has a `location`, then load the files from there
         definition_location = self._definition.get('location')
-        if not definition_location:
+        if definition_location:
             if definition_location.endswith('.tar.gz'):
                 self._files_required[os.path.join('input', 'start.tar.gz')] = self._definition.get('location')  # Any changes to local/remote dirs here
             else:
