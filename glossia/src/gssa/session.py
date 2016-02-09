@@ -32,6 +32,7 @@ class GoSmartSimulationServerSession(ApplicationSession):
     _component = None
 
     def __init__(self, x, server_id, database, ignore_development=False):
+        self.server_id = server_id
         self._component = GoSmartSimulationServerComponent(
             server_id,
             database,
@@ -136,7 +137,6 @@ class GoSmartSimulationServerSession(ApplicationSession):
                 self.register(self.doFinalize, u'com.gosmartsimulation%s.finalize' % i)
                 self.register(self.doClean, u'com.gosmartsimulation%s.clean' % i)
                 self.register(self.doCompare, u'com.gosmartsimulation%s.compare' % i)
-                self.register(self.doWorkflow, u'com.gosmartsimulation%s.workflow' % i)
                 self.register(self.doProperties, u'com.gosmartsimulation%s.properties' % i)
                 self.register(self.doRetrieveStatus, u'com.gosmartsimulation%s.retrieve_status' % i)
             logger.info("procedure registered")
