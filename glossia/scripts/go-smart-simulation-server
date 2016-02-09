@@ -26,7 +26,7 @@ from gssa.database import SQLiteSimulationDatabase
 import argparse
 import uuid
 import logging
-from asyncio import ConnectionRefusedError, sleep
+from asyncio import sleep
 
 
 logging.getLogger('watchdog.observers.inotify_buffer').setLevel(logging.DEBUG)
@@ -78,5 +78,6 @@ if __name__ == "__main__":
             runner.run(lambda x: launch(x, server_id=server_id, ignore_development=ignore_development))
         except ConnectionRefusedError:
             logging.warning("Connection refused...")
+            sleep(1)
         else:
             break
