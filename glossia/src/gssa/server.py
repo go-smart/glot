@@ -86,13 +86,19 @@ class GoSmartSimulationServerComponent(object):
             logger.debug("Creating server ID directory")
             os.mkdir(server_id)
 
+        logger.debug("Changing to server ID directory")
+
         # Use this as the working directory
         os.chdir(server_id)
+
+        logger.debug("Storing identity (%s)" % server_id)
 
         # Provide a directory-internal way to find out our ID (i.e. without
         # looking at the name in the directory above)
         with open("identity", "w") as f:
             f.write(server_id)
+
+        logger.debug("Requesting DB setup")
 
         # Flag this up to be done, but don't wait for it
         loop.call_soon_threadsafe(lambda: self.setDatabase(database()))
@@ -101,6 +107,7 @@ class GoSmartSimulationServerComponent(object):
     def setDatabase(self, database):
         self._db = database
         self._db.markAllOld()
+        logger.debug("DB set up")
 
     # com.gosmartsimulation.init - dummy call for the moment
     @asyncio.coroutine
