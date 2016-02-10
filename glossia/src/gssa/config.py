@@ -39,7 +39,7 @@ def init_config(config_file=None):
     global __config, __config_file
 
     if config_file is None:
-        config_file = os.path.join(etc_location, 'gssa.yml')
+        config_file = os.path.join(etc_location, 'glossia.yml')
 
     __config_file = config_file
 
