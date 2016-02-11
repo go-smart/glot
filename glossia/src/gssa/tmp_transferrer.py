@@ -68,7 +68,7 @@ class TmpTransferrer:
         for local, remote in files.items():
             absolute_path = os.path.join(root, local)
             try:
-                os.rename(remote, absolute_path)
+                shutil.move(remote, absolute_path)
             except FileNotFoundError as e:
                 logger.error("Could not transfer %s on /tmp to %s - not found" % (remote, absolute_path))
                 # raise e
