@@ -31,7 +31,7 @@ class TmpTransferrer:
         temp_directory = None
         # If we have a specific archive, copy it across
         if self._input_archive:
-            temp_directory = tempfile.gettempdir()
+            temp_directory = tempfile.mkdtemp()
             temp_archive = os.path.join(temp_directory, 'input.tar.gz')
 
             short_files = {}
@@ -72,6 +72,8 @@ class TmpTransferrer:
             except FileNotFoundError as e:
                 logger.error("Could not transfer %s on /tmp to %s - not found" % (remote, absolute_path))
                 # raise e
+
+        shutil.rmtree(temp_directory)
 
     # Send the files back the other way - to /tmp
     def push_files(self, files, root, remote_root):
