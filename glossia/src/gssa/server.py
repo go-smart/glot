@@ -38,11 +38,11 @@ try:
 except:
     use_observant = False
 
-from .definition import GoSmartSimulationDefinition
-from .comparator import Comparator
-from .translator import GoSmartSimulationTranslator
-from .error import Error, makeError
-from .config import etc_location
+from gssa.comparator import Comparator
+from gssa.definition import GoSmartSimulationDefinition
+from gssa.translator import GoSmartSimulationTranslator
+from gssa.error import Error, makeError
+from gssa.config import etc_location
 
 
 # This subclasses ApplicationSession, which runs inside an Autobahn WAMP session
