@@ -27,6 +27,7 @@ sudo dockerlaunchd start
 ```
 
 2. Glossia
+------------
 
 To install:
 ```
