@@ -1,6 +1,13 @@
 Basic installation steps
 ========================
 
+Dependencies
+------------
+
+* pip
+* pip3
+* cmake
+
 1. Dockerlaunch
 ------------
 
@@ -34,6 +41,8 @@ To install:
 sudo pip install docker-compose
 sudo docker pull gosmart/glossia
 git clone https://github.com/go-smart/glossia-server-side.git
+cd glossia-server-side
+sudo ./setup.sh
 ```
 
 To add simulation families (sandbox images):
@@ -42,10 +51,9 @@ sudo docker pull gosmart/glossia-goosefoot
 sudo docker pull gosmart/glossia-fenics
 ```
 
-To run:
+To run (from `glossia-server-side`):
 ```
-cd glossia-server-side
-export COMPOSE_API_VERSION=$(docker version | grep 'Server API' | awk '{ print $NF }')
+export COMPOSE_API_VERSION=$(sudo docker version | grep 'Server API' | awk '{ print $NF }')
 sudo COMPOSE_API_VERSION="$COMPOSE_API_VERSION" docker-compose up
 ```
 
