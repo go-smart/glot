@@ -38,9 +38,9 @@ try:
 except:
     use_observant = False
 
-from gssa.comparator import Comparator
-from gssa.definition import GoSmartSimulationDefinition
-from gssa.translator import GoSmartSimulationTranslator
+import gssa.comparator
+import gssa.definition
+import gssa.translator
 from gssa.error import Error, makeError
 from gssa.config import etc_location
 
@@ -228,7 +228,7 @@ class GoSmartSimulationServerComponent(object):
     # and, if not, what their differences are
     @asyncio.coroutine
     def doCompare(self, this_xml, that_xml):
-        comparator = Comparator(this_xml, that_xml)
+        comparator = gssa.comparator.Comparator(this_xml, that_xml)
         return comparator.diff()
 
     # com.gosmartsimulation.update_settings_xml - set the GSSA-XML for a given
@@ -243,8 +243,8 @@ class GoSmartSimulationServerComponent(object):
             logger.debug("Changed permissions")
 
             # Set up the translator to parse the standard bits of GSSA-XML
-            translator = GoSmartSimulationTranslator()
-            self.current[guid] = GoSmartSimulationDefinition(
+            translator = gssa.translator.GoSmartSimulationTranslator()
+            self.current[guid] = gssa.definition.GoSmartSimulationDefinition(
                 guid,
                 xml,
                 tmpdir,
