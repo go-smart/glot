@@ -6,6 +6,7 @@ import uuid
 import traceback
 
 from gssa.server import GoSmartSimulationServerComponent
+import gssa.comparator
 
 
 known_guid = str(uuid.uuid4())
@@ -157,3 +158,19 @@ def test_request_files_fails_on_uploaded_error(gsssc, definition):
     definition.push_files.assert_called_with(files)
 
     assert(result == {})
+
+
+@pytest.mark.asyncio
+def test_compare_succeeds(gsssc, monkeypatch):
+    xml1 = 5432
+    xml2 = 4321
+
+    comparator = MagicMock()
+    monkeypatch.setattr("gssa.comparator.Comparator", lambda x1, x2: comparator)
+    comparator.diff.return_value = 1234
+
+    result = yield from gsssc.doCompare(xml1, xml2)
+
+    comparator.diff.assert_called_once_with()
+
+    assert(result == 1234)
