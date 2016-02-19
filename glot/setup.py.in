@@ -1,0 +1,21 @@
+from distutils.core import setup
+
+setup(
+    name='Glot',
+    version='${PACKAGE_VERSION}',
+    packages=['glot'],
+    package_dir={'glot': '${CMAKE_CURRENT_SOURCE_DIR}/src/glot'},
+
+    description='CLI manager for Glossia',
+    author='NUMA Engineering Services Ltd.',
+    author_email='phil.weir@numa.ie',
+    url='http://gosmart-project.eu/',
+
+    scripts=[
+        '${CMAKE_CURRENT_SOURCE_DIR}' + '/scripts/glot',
+    ],
+
+    install_requires=[
+        'aiohttp'
+    ]
+)

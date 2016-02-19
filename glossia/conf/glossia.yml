@@ -1,2 +1,0 @@
-dockerlaunch:
-    socket_location: "/var/run/docker-launch/docker-launch.sock"

@@ -10,7 +10,6 @@ if (PYTHON3)
     # our setup.py, such as the target directory, source git revision, etc.
     set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
     set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-    set(DEPS        "${CMAKE_CURRENT_SOURCE_DIR}/scripts/go-smart-launcher")
 
     # This timestamp allows us to check whether a re-run is needed, based on the setup.py.in
     # modification time
@@ -26,7 +25,7 @@ if (PYTHON3)
                        DEPENDS ${DEPS})
 
     # Add this new command as a target for ALL
-    add_custom_target(target ALL DEPENDS ${OUTPUT} ${CMAKE_CURRENT_SOURCE_DIR}/conf/vigilant.cfg)
+    add_custom_target(target ALL DEPENDS ${OUTPUT} ${CMAKE_CURRENT_SOURCE_DIR}/conf/glot.yml)
 
     # On install, run setup.py [install]
     install(CODE "execute_process(COMMAND ${PYTHON3} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")

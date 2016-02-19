@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+
+# This file is part of the Go-Smart Simulation Architecture (GSSA).
+# Go-Smart is an EU-FP7 project, funded by the European Commission.
+#
+# Copyright (C) 2013-  NUMA Engineering Ltd. (see AUTHORS file)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import click
+import logging
+import asyncio
+from aiohttp import web
+
+from glot.connector import execute
+
+_default_server_port = 18103
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+
+@asyncio.coroutine
+def start_one_file_http_server(filename):
+    fut = asyncio.Future()
+
+    def receive(request):
+        yield from request.post()
+        try:
+            with open(filename, 'wb') as f:
+                g = request.POST['file'].file
+                f.write(g.read())
+            fut.set_result(filename)
+        except:
+            logging.exception('Could not receive file')
+            fut.set_result(None)
+
+        return web.Response(body=b"Accepted")
+
+    app = web.Application()
+    app.router.add_route('POST', '/%s' % filename, receive)
+
+    loop = asyncio.get_event_loop()
+
+    # FIXME: this should be tied to the Docker interface,
+    # when we have a good way of calculating it
+    srv = yield from loop.create_server(app.make_handler(), '0.0.0.0', 18103)
+
+    return srv, fut
+
+
+def execute_command(f):
+    def run(ctx, **kwargs):
+        logging.info("Executing command")
+
+        diagnostic_files = execute(
+            f,
+            *ctx.obj['SERVER'],
+            **kwargs
+        )
+
+        logging.info("[done]")
+
+        print(diagnostic_files)
+    run.__name__ = f.__name__
+    return run
+
+
+@click.group()
+@click.option('--server', default=None, help='ID of the specific Glossia server (defaults to primary on router)')
+@click.option('--router', default='localhost', help='location of the WAMP server')
+@click.option('--port', default=8080, help='port on server for WebSocket connection')
+@click.pass_context
+def cli(ctx, server, router, port):
+    """Manage Glossia from the CLI"""
+    ctx.obj['SERVER'] = (server, router, port)
+
+
+@cli.command()
+@click.option('--target', default=None)
+@click.argument('guid')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def diagnostic(mc, guid, target):
+    """Push diagnostic data to the webserver"""
+
+    if target is None:
+        logging.warn(
+            "No target given, assuming we should provide "
+            "a target for a local Glossia"
+        )
+        srv, fut = yield from start_one_file_http_server('%s.tgz' % guid)
+    else:
+        fut = None
+
+    files = yield from mc('request_diagnostic', guid.upper(), target)
+
+    if fut is not None:
+        filename = yield from fut
+        print(filename)
+        srv.close()
+
+    return files
+
+
+if __name__ == '__main__':
+    cli(obj={})
