@@ -23,6 +23,10 @@ import click
 import logging
 import asyncio
 from aiohttp import web
+import os
+import tarfile
+from git import Repo
+import shutil
 
 from glot.connector import execute
 
@@ -33,6 +37,11 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
+
+_repo_locations = {
+    'goosefoot': 'https://github.com/go-smart/glossia-container-goosefoot-control'
+}
 
 
 @asyncio.coroutine
@@ -97,8 +106,41 @@ def cli(ctx, server, router, port):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def diagnostic(mc, guid, target):
+def results(mc, guid, target, inspect):
+    """Push results data to the webserver"""
+
+    filename = None
+
+    if target is None:
+        logging.warn(
+            "No target given, assuming we should provide "
+            "a target for a local Glossia"
+        )
+        srv, fut = yield from start_one_file_http_server('%s.tgz' % guid)
+    else:
+        fut = None
+
+    files = yield from mc('request_results', guid.upper(), target)
+
+    if fut is not None:
+        filename = yield from fut
+        print(filename)
+        srv.close()
+
+    return files
+
+
+@cli.command()
+@click.option('--target', default=None)
+@click.option('--inspect', is_flag=True)
+@click.argument('guid')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def diagnostic(mc, guid, target, inspect):
     """Push diagnostic data to the webserver"""
+
+    filename = None
 
     if target is None:
         logging.warn(
@@ -116,7 +158,83 @@ def diagnostic(mc, guid, target):
         print(filename)
         srv.close()
 
+    if inspect:
+        if filename is None:
+            if len(files) < 1:
+                raise RuntimeError("No diagnostic files returned")
+            elif len(files) > 1:
+                raise RuntimeError("Multiple diagnostic files, run inspect manually")
+
+            filename = files.items()[0]
+        inspect(filename)
+
     return files
+
+
+@cli.command()
+@click.option('--force', is_flag=True)
+@click.option('--mode', default='goosefoot')
+@click.option('--verbose', is_flag=True)
+@click.argument('archive')
+def inspect(archive, force=False, mode='goosefoot', verbose=False):
+    """Examine a diagnostic bundle"""
+
+    if not os.path.exists(archive):
+        raise RuntimeError("You must supply a diagnostic archive")
+
+    path = os.path.splitext(archive)[0]
+    rootpath = path
+
+    if not force:
+        if os.path.exists(path):
+            raise FileExistsError("Run with --force to remove existing diagnostic directory")
+    else:
+        try:
+            shutil.rmtree(path)
+        except FileNotFoundError:
+            pass
+
+    logging.info("Extracting to {path}".format(path=path))
+
+    repo_location = _repo_locations[mode]
+    logging.info("Cloning control from {loc}".format(loc=repo_location))
+    Repo.clone_from(repo_location, path)
+
+    logging.info("Opening diagnostic archive {arc}".format(arc=archive))
+    with tarfile.open(archive, 'r') as t:
+        members = t.getmembers()
+        names = [m.name for m in members if not m.isdir()]
+        prefix = os.path.commonprefix(names)
+        logging.info("Stripping prefix {prefix}".format(prefix=prefix))
+
+        inp = os.path.join(prefix, 'input')
+        try:
+            t.getmember(inp)
+        except KeyError:
+            path = os.path.join(path, 'input')
+            os.makedirs(path)
+
+        for m in members:
+            if m.name.startswith(prefix):
+                outpath = os.path.join(path, m.name[len(prefix):])
+                outpath = outpath.replace('input.final', 'input')
+
+                if verbose:
+                    logging.info("{fm} --> {to}".format(fm=m.name, to=outpath))
+
+                if m.isdir():
+                    os.makedirs(outpath)
+                else:
+                    with open(outpath, 'wb') as f, t.extractfile(m) as g:
+                        shutil.copyfileobj(g, f)
+
+    logging.info("Done extracting")
+
+    if mode is 'goosefoot':
+        shutil.copyfile(
+            os.path.join(rootpath, 'input', 'settings.xml'),
+            os.path.join(rootpath, 'settings', 'settings.xml')
+        )
 
 
 if __name__ == '__main__':
