@@ -49,6 +49,7 @@ def start_one_file_http_server(filename):
     fut = asyncio.Future()
 
     def receive(request):
+        logging.info('Got request')
         yield from request.post()
         try:
             with open(filename, 'wb') as f:
@@ -62,7 +63,8 @@ def start_one_file_http_server(filename):
         return web.Response(body=b"Accepted")
 
     app = web.Application()
-    app.router.add_route('POST', '/%s' % filename, receive)
+    logging.info('Adding POST route at /receive')
+    app.router.add_route('POST', '/receive', receive)
 
     loop = asyncio.get_event_loop()
 
@@ -77,6 +79,7 @@ def execute_command(f):
     def run(ctx, **kwargs):
         logging.info("Executing command")
 
+        kwargs['ctx'] = ctx
         execute(
             f,
             *ctx.obj['SERVER'],
@@ -92,10 +95,12 @@ def execute_command(f):
 @click.option('--server', default=None, help='ID of the specific Glossia server (defaults to primary on router)')
 @click.option('--router', default='localhost', help='location of the WAMP server')
 @click.option('--port', default=8080, help='port on server for WebSocket connection')
+@click.option('--to', default=None, help='name of destination folder')
 @click.pass_context
-def cli(ctx, server, router, port):
+def cli(ctx, server, router, port, to):
     """Manage Glossia from the CLI"""
     ctx.obj['SERVER'] = (server, router, port)
+    ctx.obj['DESTINATION'] = to
 
 
 @cli.command()
@@ -103,7 +108,7 @@ def cli(ctx, server, router, port):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def search(mc, guid):
+def search(mc, guid, ctx):
     """Check for definitions match GUID (prefix)"""
 
     definitions = yield from mc('search', guid.upper())
@@ -114,11 +119,12 @@ def search(mc, guid):
 
 @cli.command()
 @click.option('--target', default=None)
+@click.option('-d', '--include-diagnostic', default=False, is_flag=True)
 @click.argument('guid')
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def results(mc, guid, target):
+def results(mc, guid, target, include_diagnostic, ctx):
     """Push results data to the webserver"""
 
     filename = None
@@ -128,18 +134,25 @@ def results(mc, guid, target):
             "No target given, assuming we should provide "
             "a target for a local Glossia"
         )
-        srv, fut = yield from start_one_file_http_server('%s.tgz' % guid)
+        srv, fut = yield from start_one_file_http_server('%s-results.tgz' % guid)
     else:
         fut = None
 
-    files = yield from mc('request_results', guid.upper(), target)
+    yield from mc('request_results', guid.upper(), target)
 
     if fut is not None:
         filename = yield from fut
         print(filename)
         srv.close()
 
-    print(files)
+    to = ctx.obj['DESTINATION'] if not target else None
+    if to:
+        os.makedirs(to, exist_ok=True)
+        with tarfile.open(filename) as f:
+            f.extractall(path=to)
+
+    if include_diagnostic:
+        yield from _diagnostic(mc, guid, target, False, ctx)
 
 
 @cli.command()
@@ -149,9 +162,13 @@ def results(mc, guid, target):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def diagnostic(mc, guid, target, inspect):
+def diagnostic(mc, guid, target, inspect, ctx):
     """Push diagnostic data to the webserver"""
 
+    yield from _diagnostic(mc, guid, target, inspect, ctx)
+
+
+def _diagnostic(mc, guid, target, inspect, ctx):
     filename = None
 
     if target is None:
@@ -159,7 +176,7 @@ def diagnostic(mc, guid, target, inspect):
             "No target given, assuming we should provide "
             "a target for a local Glossia"
         )
-        srv, fut = yield from start_one_file_http_server('%s.tgz' % guid)
+        srv, fut = yield from start_one_file_http_server('%s-diagnostic.tgz' % guid)
     else:
         fut = None
 
@@ -170,6 +187,12 @@ def diagnostic(mc, guid, target, inspect):
         print(filename)
         srv.close()
 
+    to = ctx.obj['DESTINATION'] if not target else None
+    if to:
+        os.makedirs(to, exist_ok=True)
+        with tarfile.open(filename) as f:
+            f.extractall(path=to)
+
     if inspect:
         if filename is None:
             if len(files) < 1:
@@ -179,6 +202,8 @@ def diagnostic(mc, guid, target, inspect):
 
             filename = files.items()[0]
         inspect(filename)
+
+    return filename
 
 
 @cli.command()
