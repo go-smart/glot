@@ -77,15 +77,13 @@ def execute_command(f):
     def run(ctx, **kwargs):
         logging.info("Executing command")
 
-        diagnostic_files = execute(
+        execute(
             f,
             *ctx.obj['SERVER'],
             **kwargs
         )
 
         logging.info("[done]")
-
-        print(diagnostic_files)
     run.__name__ = f.__name__
     return run
 
@@ -101,12 +99,26 @@ def cli(ctx, server, router, port):
 
 
 @cli.command()
+@click.argument('guid')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def search(mc, guid):
+    """Check for definitions match GUID (prefix)"""
+
+    definitions = yield from mc('search', guid.upper())
+
+    for g, d in definitions.items():
+        print(g, d)
+
+
+@cli.command()
 @click.option('--target', default=None)
 @click.argument('guid')
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def results(mc, guid, target, inspect):
+def results(mc, guid, target):
     """Push results data to the webserver"""
 
     filename = None
@@ -127,7 +139,7 @@ def results(mc, guid, target, inspect):
         print(filename)
         srv.close()
 
-    return files
+    print(files)
 
 
 @cli.command()
@@ -167,8 +179,6 @@ def diagnostic(mc, guid, target, inspect):
 
             filename = files.items()[0]
         inspect(filename)
-
-    return files
 
 
 @cli.command()
