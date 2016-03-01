@@ -201,7 +201,7 @@ def _diagnostic(mc, guid, target, inspect, ctx):
                 raise RuntimeError("Multiple diagnostic files, run inspect manually")
 
             filename = files.items()[0]
-        inspect(filename)
+        _inspect(filename)
 
     return filename
 
@@ -213,7 +213,10 @@ def _diagnostic(mc, guid, target, inspect, ctx):
 @click.argument('archive')
 def inspect(archive, force=False, mode='goosefoot', verbose=False):
     """Examine a diagnostic bundle"""
+    _inspect(archive, force, mode, verbose)
 
+
+def _inspect(archive, force=False, mode='goosefoot', verbose=False):
     if not os.path.exists(archive):
         raise RuntimeError("You must supply a diagnostic archive")
 

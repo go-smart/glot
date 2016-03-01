@@ -1,0 +1,11 @@
+setup.cfg
+setup.py
+Glot.egg-info/PKG-INFO
+Glot.egg-info/SOURCES.txt
+Glot.egg-info/dependency_links.txt
+Glot.egg-info/requires.txt
+Glot.egg-info/top_level.txt
+scripts/glot
+src/glot/__init__.py
+src/glot/client.py
+src/glot/connector.py
