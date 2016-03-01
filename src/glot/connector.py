@@ -19,6 +19,7 @@ from autobahn.asyncio.wamp import ApplicationSession
 from autobahn.asyncio.wamp import ApplicationRunner
 import asyncio
 import logging
+import txaio
 from functools import partial
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,9 @@ def execute(action, server, router, port, debug=False, **kwargs):
     responses = []
     if debug:
         logger.info("DEBUG ON")
-    runner = ApplicationRunner(url="ws://%s:%d/ws" % (router, port), debug=debug, debug_app=debug, realm="realm1")
+        logging.getLogger('autobahn').setLevel(logging.DEBUG)
+
+    runner = ApplicationRunner(url="ws://%s:%d/ws" % (router, port), realm="realm1")
     logger.info("Starting connection")
     runner.run(partial(GlotConnector, responses=responses, action=action, server=server, **kwargs))
     return responses.pop() if responses else None
@@ -70,7 +73,7 @@ class GlotConnector(ApplicationSession):
         logger.info("Session ready - executing action")
 
         try:
-            self.result = yield from self._action(self.execute_call, **self._kwargs)
+            self.result = yield from self._action(self.execute_call, self.log, **self._kwargs)
         finally:
             self.leave()
 
@@ -83,6 +86,8 @@ class GlotConnector(ApplicationSession):
             self._responses.append(result)
         except:
             logger.exception("Could not complete call")
+
+        return result
 
     def onDisconnect(self):
         asyncio.get_event_loop().stop()

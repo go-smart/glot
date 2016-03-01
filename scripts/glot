@@ -20,23 +20,18 @@
 
 
 import click
-import logging
 import asyncio
 from aiohttp import web
 import os
 import tarfile
+import logging
 from git import Repo
 import shutil
+import txaio
 
 from glot.connector import execute
 
 _default_server_port = 18103
-
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 
 
 _repo_locations = {
@@ -44,41 +39,64 @@ _repo_locations = {
 }
 
 
-@asyncio.coroutine
-def start_one_file_http_server(filename):
-    fut = asyncio.Future()
+class OneFileHttpServer:
+    def __init__(self, log, app, srv, handler, fut):
+        self._app = app
+        self._srv = srv
+        self._handler = handler
+        self._log = log
+        self._fut = fut
 
-    def receive(request):
-        logging.info('Got request')
-        yield from request.post()
-        try:
-            with open(filename, 'wb') as f:
-                g = request.POST['file'].file
-                f.write(g.read())
-            fut.set_result(filename)
-        except:
-            logging.exception('Could not receive file')
-            fut.set_result(None)
+    @classmethod
+    @asyncio.coroutine
+    def make(cls, log, filename):
+        fut = asyncio.Future()
 
-        return web.Response(body=b"Accepted")
+        def receive(request):
+            log.info('Got request')
+            yield from request.post()
+            try:
+                with open(filename, 'wb') as f:
+                    g = request.POST['file'].file
+                    f.write(g.read())
+                fut.set_result(filename)
+            except:
+                log.exception('Could not receive file')
+                fut.set_result(None)
 
-    app = web.Application()
-    logging.info('Adding POST route at /receive')
-    app.router.add_route('POST', '/receive', receive)
+            return web.Response(body=b"Accepted")
 
-    loop = asyncio.get_event_loop()
+        app = web.Application()
+        log.info('Adding POST route at /receive')
+        app.router.add_route('POST', '/receive', receive)
 
-    # FIXME: this should be tied to the Docker interface,
-    # when we have a good way of calculating it
-    srv = yield from loop.create_server(app.make_handler(), '0.0.0.0', 18103)
+        loop = asyncio.get_event_loop()
+        handler = app.make_handler()
 
-    return srv, fut
+        # FIXME: this should be tied to the Docker interface,
+        # when we have a good way of calculating it
+        srv = yield from loop.create_server(handler, '0.0.0.0', _default_server_port)
+
+        return cls(log, app, srv, handler, fut)
+
+    def cancel(self):
+        self._fut.cancel()
+
+    @asyncio.coroutine
+    def wait(self):
+        yield from self._fut
+
+    @asyncio.coroutine
+    def close(self):
+        self._srv.close()
+        yield from self._srv.wait_closed()
+        yield from self._app.shutdown()
+        yield from self._handler.finish_connections(60.0)
+        yield from self._app.cleanup()
 
 
 def execute_command(f):
     def run(ctx, **kwargs):
-        logging.info("Executing command")
-
         kwargs['ctx'] = ctx
         kwargs['debug'] = ctx.obj['DEBUG']
         execute(
@@ -86,8 +104,6 @@ def execute_command(f):
             *ctx.obj['SERVER'],
             **kwargs
         )
-
-        logging.info("[done]")
     run.__name__ = f.__name__
     return run
 
@@ -105,7 +121,9 @@ def cli(ctx, server, router, port, to, debug):
     ctx.obj['DESTINATION'] = to
     ctx.obj['DEBUG'] = debug
     if debug:
-        logging.getLogger().setLevel(logging.DEBUG)
+        txaio.start_logging(level='debug')
+    else:
+        txaio.start_logging(level='info')
 
 
 @cli.command()
@@ -113,7 +131,7 @@ def cli(ctx, server, router, port, to, debug):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def search(mc, guid, ctx):
+def search(mc, log, guid, ctx):
     """Check for definitions match GUID (prefix)"""
 
     definitions = yield from mc('search', guid.upper())
@@ -129,24 +147,24 @@ def search(mc, guid, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def results(mc, guid, target, include_diagnostic, ctx):
+def results(mc, log, guid, target, include_diagnostic, ctx):
     """Push results data to the webserver"""
 
     filename = None
 
     if target is None:
-        logging.warn(
+        log.warn(
             "No target given, assuming we should provide "
             "a target for a local Glossia"
         )
-        srv, fut = yield from start_one_file_http_server('%s-results.tgz' % guid)
+        srv = yield from OneFileHttpServer.make(log, '%s-results.tgz' % guid)
     else:
-        fut = None
+        srv = None
 
     yield from mc('request_results', guid.upper(), target)
 
-    if fut is not None:
-        filename = yield from fut
+    if srv is not None:
+        filename = yield from srv.wait()
         print(filename)
         srv.close()
 
@@ -157,7 +175,7 @@ def results(mc, guid, target, include_diagnostic, ctx):
             f.extractall(path=to)
 
     if include_diagnostic:
-        yield from _diagnostic(mc, guid, target, False, ctx)
+        yield from _diagnostic(mc, log, guid, target, False, ctx)
 
 
 @cli.command()
@@ -167,30 +185,37 @@ def results(mc, guid, target, include_diagnostic, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def diagnostic(mc, guid, target, inspect, ctx):
+def diagnostic(mc, log, guid, target, inspect, ctx):
     """Push diagnostic data to the webserver"""
 
-    yield from _diagnostic(mc, guid, target, inspect, ctx)
+    yield from _diagnostic(mc, log, guid, target, inspect, ctx)
 
 
-def _diagnostic(mc, guid, target, inspect, ctx):
+def _diagnostic(mc, log, guid, target, inspect, ctx):
     filename = None
 
     if target is None:
-        logging.warn(
+        log.warn(
             "No target given, assuming we should provide "
             "a target for a local Glossia"
         )
-        srv, fut = yield from start_one_file_http_server('%s-diagnostic.tgz' % guid)
+        srv = yield from OneFileHttpServer.make(log, '%s-diagnostic.tgz' % guid)
     else:
-        fut = None
+        srv = None
 
     files = yield from mc('request_diagnostic', guid.upper(), target)
 
-    if fut is not None:
-        filename = yield from fut
-        print(filename)
+    if srv is not None:
+        if files:
+            filename = yield from srv.wait()
+        else:
+            srv.cancel()
         srv.close()
+
+    if files:
+        log.info("FILES:\n\t%s" % "\n\t".join(["[%s]: [%s]" % t for t in files.items()]))
+    else:
+        log.warn("No simulation diagnostics found")
 
     to = ctx.obj['DESTINATION'] if not target else None
     if to:
@@ -206,7 +231,7 @@ def _diagnostic(mc, guid, target, inspect, ctx):
                 raise RuntimeError("Multiple diagnostic files, run inspect manually")
 
             filename = files.items()[0]
-        _inspect(filename)
+        _inspect(log, filename)
 
     return filename
 
@@ -218,10 +243,11 @@ def _diagnostic(mc, guid, target, inspect, ctx):
 @click.argument('archive')
 def inspect(archive, force=False, mode='goosefoot', verbose=False):
     """Examine a diagnostic bundle"""
-    _inspect(archive, force, mode, verbose)
+    log = logging.getLogger()
+    _inspect(log, archive, force, mode, verbose)
 
 
-def _inspect(archive, force=False, mode='goosefoot', verbose=False):
+def _inspect(log, archive, force=False, mode='goosefoot', verbose=False):
     if not os.path.exists(archive):
         raise RuntimeError("You must supply a diagnostic archive")
 
@@ -237,18 +263,18 @@ def _inspect(archive, force=False, mode='goosefoot', verbose=False):
         except FileNotFoundError:
             pass
 
-    logging.info("Extracting to {path}".format(path=path))
+    log.info("Extracting to {path}".format(path=path))
 
     repo_location = _repo_locations[mode]
-    logging.info("Cloning control from {loc}".format(loc=repo_location))
+    log.info("Cloning control from {loc}".format(loc=repo_location))
     Repo.clone_from(repo_location, path)
 
-    logging.info("Opening diagnostic archive {arc}".format(arc=archive))
+    log.info("Opening diagnostic archive {arc}".format(arc=archive))
     with tarfile.open(archive, 'r') as t:
         members = t.getmembers()
         names = [m.name for m in members if not m.isdir()]
         prefix = os.path.commonprefix(names)
-        logging.info("Stripping prefix {prefix}".format(prefix=prefix))
+        log.info("Stripping prefix {prefix}".format(prefix=prefix))
 
         inp = os.path.join(prefix, 'input')
         try:
@@ -263,7 +289,7 @@ def _inspect(archive, force=False, mode='goosefoot', verbose=False):
                 outpath = outpath.replace('input.final', 'input')
 
                 if verbose:
-                    logging.info("{fm} --> {to}".format(fm=m.name, to=outpath))
+                    log.info("{fm} --> {to}".format(fm=m.name, to=outpath))
 
                 if m.isdir():
                     os.makedirs(outpath)
@@ -271,7 +297,7 @@ def _inspect(archive, force=False, mode='goosefoot', verbose=False):
                     with open(outpath, 'wb') as f, t.extractfile(m) as g:
                         shutil.copyfileobj(g, f)
 
-    logging.info("Done extracting")
+    log.info("Done extracting")
 
     if mode is 'goosefoot':
         shutil.copyfile(
