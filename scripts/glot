@@ -80,6 +80,7 @@ def execute_command(f):
         logging.info("Executing command")
 
         kwargs['ctx'] = ctx
+        kwargs['debug'] = ctx.obj['DEBUG']
         execute(
             f,
             *ctx.obj['SERVER'],
@@ -96,11 +97,15 @@ def execute_command(f):
 @click.option('--router', default='localhost', help='location of the WAMP server')
 @click.option('--port', default=8080, help='port on server for WebSocket connection')
 @click.option('--to', default=None, help='name of destination folder')
+@click.option('--debug', default=False, is_flag=True)
 @click.pass_context
-def cli(ctx, server, router, port, to):
+def cli(ctx, server, router, port, to, debug):
     """Manage Glossia from the CLI"""
     ctx.obj['SERVER'] = (server, router, port)
     ctx.obj['DESTINATION'] = to
+    ctx.obj['DEBUG'] = debug
+    if debug:
+        logging.getLogger().setLevel(logging.DEBUG)
 
 
 @cli.command()

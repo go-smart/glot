@@ -24,9 +24,11 @@ from functools import partial
 logger = logging.getLogger(__name__)
 
 
-def execute(action, server, router, port, **kwargs):
+def execute(action, server, router, port, debug=False, **kwargs):
     responses = []
-    runner = ApplicationRunner(url="ws://%s:%d/ws" % (router, port), realm="realm1")
+    if debug:
+        logger.info("DEBUG ON")
+    runner = ApplicationRunner(url="ws://%s:%d/ws" % (router, port), debug=debug, debug_app=debug, realm="realm1")
     logger.info("Starting connection")
     runner.run(partial(GlotConnector, responses=responses, action=action, server=server, **kwargs))
     return responses.pop() if responses else None
