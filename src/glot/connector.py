@@ -19,7 +19,6 @@ from autobahn.asyncio.wamp import ApplicationSession
 from autobahn.asyncio.wamp import ApplicationRunner
 import asyncio
 import logging
-import txaio
 from functools import partial
 
 logger = logging.getLogger(__name__)
@@ -33,7 +32,7 @@ def execute(action, server, router, port, debug=False, **kwargs):
 
     runner = ApplicationRunner(url="ws://%s:%d/ws" % (router, port), realm="realm1")
     logger.info("Starting connection")
-    runner.run(partial(GlotConnector, responses=responses, action=action, server=server, **kwargs))
+    runner.run(partial(GlotConnector, responses=responses, action=action, debug=debug, server=server, **kwargs))
     return responses.pop() if responses else None
 
 
@@ -51,12 +50,15 @@ def wrapped_coroutine(f):
 class GlotConnector(ApplicationSession):
 
     # Accept arguments from the command line
-    def __init__(self, x, responses, action, server=None, **kwargs):
+    def __init__(self, x, responses, action, debug, server=None, **kwargs):
         ApplicationSession.__init__(self, x)
         self._kwargs = kwargs
         self._action = action
         self._server = server
         self._responses = responses
+        if debug:
+            # Seemingly the start_logging call is insufficient
+            self.log._set_level('debug')
         logger.info("Targeting server [%s]" % (server))
 
     def make_call(self, suffix):

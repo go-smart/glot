@@ -18,6 +18,7 @@ setup(
     install_requires=[
         'aiohttp',
         'Click',
-        'gitpython'
+        'gitpython',
+        'tabulate'
     ]
 )

@@ -28,6 +28,8 @@ import logging
 from git import Repo
 import shutil
 import txaio
+import tabulate
+import datetime
 
 from glot.connector import execute
 
@@ -85,6 +87,7 @@ class OneFileHttpServer:
     @asyncio.coroutine
     def wait(self):
         yield from self._fut
+        return self._fut.result()
 
     @asyncio.coroutine
     def close(self):
@@ -113,13 +116,15 @@ def execute_command(f):
 @click.option('--router', default='localhost', help='location of the WAMP server')
 @click.option('--port', default=8080, help='port on server for WebSocket connection')
 @click.option('--to', default=None, help='name of destination folder')
+@click.option('--force', is_flag=True, help='Overwrite when necessary')
 @click.option('--debug', default=False, is_flag=True)
 @click.pass_context
-def cli(ctx, server, router, port, to, debug):
+def cli(ctx, server, router, port, to, force, debug):
     """Manage Glossia from the CLI"""
     ctx.obj['SERVER'] = (server, router, port)
     ctx.obj['DESTINATION'] = to
     ctx.obj['DEBUG'] = debug
+    ctx.obj['FORCE'] = force
     if debug:
         txaio.start_logging(level='debug')
     else:
@@ -127,30 +132,41 @@ def cli(ctx, server, router, port, to, debug):
 
 
 @cli.command()
-@click.argument('guid')
+@click.option('--limit', default=10)
+@click.option('--sort', default='timestamp')
+@click.argument('guid', default='')
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def search(mc, log, guid, ctx):
+def search(mc, log, limit, sort, guid, ctx):
     """Check for definitions match GUID (prefix)"""
 
     definitions = yield from mc('search', guid.upper())
 
-    for g, d in definitions.items():
-        print(g, d)
+    table = [[
+        g,
+        d['finalized'],
+        datetime.datetime.fromtimestamp(d['status']['timestamp']).strftime('%A %d, %B %Y :: %H:%M:%S'),
+        d['status']['message'].replace('\n', ' ')[0:60],
+        d['exit_status'][0],
+    ] for g, d in definitions.items()]
+    table.sort(key=lambda r: definitions[r[0]]['status']['timestamp'])
+    print(tabulate.tabulate(table))
 
 
 @cli.command()
 @click.option('--target', default=None)
 @click.option('-d', '--include-diagnostic', default=False, is_flag=True)
+@click.option('-i', '--inspect-diagnostic', default=False, is_flag=True)
 @click.argument('guid')
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def results(mc, log, guid, target, include_diagnostic, ctx):
+def results(mc, log, guid, target, include_diagnostic, inspect_diagnostic, ctx):
     """Push results data to the webserver"""
 
     filename = None
+    include_diagnostic = include_diagnostic or inspect_diagnostic
 
     if target is None:
         log.warn(
@@ -165,17 +181,17 @@ def results(mc, log, guid, target, include_diagnostic, ctx):
 
     if srv is not None:
         filename = yield from srv.wait()
-        print(filename)
-        srv.close()
+        yield from srv.close()
 
     to = ctx.obj['DESTINATION'] if not target else None
+
+    if include_diagnostic:
+        yield from _diagnostic(mc, log, guid, target, inspect_diagnostic, ctx)
+
     if to:
         os.makedirs(to, exist_ok=True)
         with tarfile.open(filename) as f:
             f.extractall(path=to)
-
-    if include_diagnostic:
-        yield from _diagnostic(mc, log, guid, target, False, ctx)
 
 
 @cli.command()
@@ -218,41 +234,55 @@ def _diagnostic(mc, log, guid, target, inspect, ctx):
         log.warn("No simulation diagnostics found")
 
     to = ctx.obj['DESTINATION'] if not target else None
-    if to:
-        os.makedirs(to, exist_ok=True)
-        with tarfile.open(filename) as f:
-            f.extractall(path=to)
-
     if inspect:
+        log.debug("Inspect")
         if filename is None:
             if len(files) < 1:
                 raise RuntimeError("No diagnostic files returned")
             elif len(files) > 1:
                 raise RuntimeError("Multiple diagnostic files, run inspect manually")
 
-            filename = files.items()[0]
-        _inspect(log, filename)
+            filename = files.popitem()
+            log.debug("Using %s: %s" % filename)
+            filename = filename[0]
+
+        with tarfile.open(filename, 'r') as t:
+            members = t.getmembers()
+            names = [m.name for m in members if not m.isdir()]
+            prefix = os.path.commonprefix(names)
+
+        log.debug("Inspecting %s" % filename)
+        _inspect(log, filename, os.path.join(to, prefix), ctx.obj['FORCE'])
+
+    if to:
+        os.makedirs(to, exist_ok=True)
+        with tarfile.open(filename) as f:
+            f.extractall(path=to)
 
     return filename
 
 
 @cli.command()
-@click.option('--force', is_flag=True)
 @click.option('--mode', default='goosefoot')
 @click.option('--verbose', is_flag=True)
 @click.argument('archive')
-def inspect(archive, force=False, mode='goosefoot', verbose=False):
+@click.pass_context
+def inspect(ctx, archive, mode='goosefoot', verbose=False):
     """Examine a diagnostic bundle"""
     log = logging.getLogger()
-    _inspect(log, archive, force, mode, verbose)
+    to = ctx.obj['DESTINATION']
+    _inspect(log, archive, to, ctx.obj['FORCE'], mode, verbose)
 
 
-def _inspect(log, archive, force=False, mode='goosefoot', verbose=False):
+def _inspect(log, archive, to, force=False, mode='goosefoot', verbose=False):
     if not os.path.exists(archive):
         raise RuntimeError("You must supply a diagnostic archive")
 
-    path = os.path.splitext(archive)[0]
-    rootpath = path
+    if to:
+        os.makedirs(to, exist_ok=True)
+        path = to
+    else:
+        path = os.path.splitext(archive)[0]
 
     if not force:
         if os.path.exists(path):
@@ -263,6 +293,7 @@ def _inspect(log, archive, force=False, mode='goosefoot', verbose=False):
         except FileNotFoundError:
             pass
 
+    rootpath = path
     log.info("Extracting to {path}".format(path=path))
 
     repo_location = _repo_locations[mode]
@@ -277,11 +308,15 @@ def _inspect(log, archive, force=False, mode='goosefoot', verbose=False):
         log.info("Stripping prefix {prefix}".format(prefix=prefix))
 
         inp = os.path.join(prefix, 'input')
+        inpfinal = os.path.join(prefix, 'input.final')
         try:
             t.getmember(inp)
         except KeyError:
-            path = os.path.join(path, 'input')
-            os.makedirs(path)
+            try:
+                t.getmember(inpfinal)
+            except KeyError:
+                path = os.path.join(path, 'input')
+                os.makedirs(path)
 
         for m in members:
             if m.name.startswith(prefix):
