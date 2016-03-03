@@ -133,15 +133,16 @@ def cli(ctx, server, router, port, to, force, debug):
 
 @cli.command()
 @click.option('--limit', default=10)
+@click.option('--server-limit', default=1000)
 @click.option('--sort', default='timestamp')
 @click.argument('guid', default='')
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def search(mc, log, limit, sort, guid, ctx):
+def search(mc, log, limit, server_limit, sort, guid, ctx):
     """Check for definitions match GUID (prefix)"""
 
-    definitions = yield from mc('search', guid.upper())
+    definitions = yield from mc('search', guid.upper(), server_limit)
 
     table = [[
         g,
@@ -150,7 +151,15 @@ def search(mc, log, limit, sort, guid, ctx):
         d['status']['message'].replace('\n', ' ')[0:60],
         d['exit_status'][0],
     ] for g, d in definitions.items()]
-    table.sort(key=lambda r: definitions[r[0]]['status']['timestamp'])
+
+    if sort == 'timestamp':
+        table.sort(key=lambda r: definitions[r[0]]['status']['timestamp'])
+    elif sort == 'guid':
+        table.sort(key=lambda r: r[0])
+
+    if limit:
+        table = table[:limit]
+
     print(tabulate.tabulate(table))
 
 

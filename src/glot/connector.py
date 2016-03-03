@@ -56,6 +56,7 @@ class GlotConnector(ApplicationSession):
         self._action = action
         self._server = server
         self._responses = responses
+        self._apis = {}
         if debug:
             # Seemingly the start_logging call is insufficient
             self.log._set_level('debug')
@@ -82,7 +83,22 @@ class GlotConnector(ApplicationSession):
         logger.info("Executed")
 
     @asyncio.coroutine
-    def execute_call(self, suffix, *args):
+    def execute_call(self, suffix, minapi='A0.0', *args):
+        if minapi:
+            if suffix in self._apis:
+                api = self._apis[suffix]
+            else:
+                try:
+                    api = yield from self.call(self.make_call(suffix), *args)
+                except:
+                    api = 'A0.0'
+                self._apis[suffix] = api
+
+            isapi, minapi = api[0], api[1:]
+
+            if isapi:
+                raise RuntimeError('API unknown')
+
         try:
             result = yield from self.call(self.make_call(suffix), *args)
             self._responses.append(result)
