@@ -30,6 +30,7 @@ import shutil
 import txaio
 import tabulate
 import datetime
+import colorama as C
 
 from glot.connector import execute
 
@@ -118,13 +119,15 @@ def execute_command(f):
 @click.option('--to', default=None, help='name of destination folder')
 @click.option('--force', is_flag=True, help='Overwrite when necessary')
 @click.option('--debug', default=False, is_flag=True)
+@click.option('--color/--no-color', default=True, is_flag=True, help='Color output to terminal')
 @click.pass_context
-def cli(ctx, server, router, port, to, force, debug):
+def cli(ctx, server, router, port, to, force, debug, color):
     """Manage Glossia from the CLI"""
     ctx.obj['SERVER'] = (server, router, port)
     ctx.obj['DESTINATION'] = to
     ctx.obj['DEBUG'] = debug
     ctx.obj['FORCE'] = force
+    ctx.obj['COLOR'] = color
     if debug:
         txaio.start_logging(level='debug')
     else:
@@ -142,25 +145,38 @@ def cli(ctx, server, router, port, to, force, debug):
 def search(mc, log, limit, server_limit, sort, guid, ctx):
     """Check for definitions match GUID (prefix)"""
 
+    color = ctx.obj['COLOR']
+
     definitions = yield from mc('search', guid.upper(), server_limit)
 
+    headers = [
+        'GUID',
+        'Set Up',
+        'Last status',
+        '',
+        'Completed'
+    ]
     table = [[
         g,
-        d['finalized'],
-        datetime.datetime.fromtimestamp(d['status']['timestamp']).strftime('%A %d, %B %Y :: %H:%M:%S'),
-        d['status']['message'].replace('\n', ' ')[0:60],
-        d['exit_status'][0],
+        'Y' if d['finalized'] else 'N',
+        '' if not d['status'] else datetime.datetime.fromtimestamp(d['status']['timestamp']).strftime('%A %d, %B %Y :: %H:%M:%S'),
+        '' if not d['status'] else d['status']['message'].replace('\n', ' ')[0:60],
+        '-' if not d['exit_status'] else ('Y' if d['exit_status'][0] in (True, 'SUCCESS') else 'N')
     ] for g, d in definitions.items()]
 
     if sort == 'timestamp':
-        table.sort(key=lambda r: definitions[r[0]]['status']['timestamp'])
+        table.sort(key=lambda r: -definitions[r[0]]['status']['timestamp'])
     elif sort == 'guid':
         table.sort(key=lambda r: r[0])
 
     if limit:
         table = table[:limit]
 
-    print(tabulate.tabulate(table))
+    if color:
+        ce = {'-': C.Fore.YELLOW, 'Y': C.Fore.GREEN, 'N': C.Fore.RED}
+        table = [[ce[d[-1]] + d[0]] + d[1:-1] + [d[-1] + C.Style.RESET_ALL] for d in table]
+
+    print(tabulate.tabulate(table, headers=headers))
 
 
 @cli.command()

@@ -19,6 +19,7 @@ setup(
         'aiohttp',
         'Click',
         'gitpython',
-        'tabulate'
+        'tabulate',
+        'colorama'
     ]
 )

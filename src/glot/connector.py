@@ -19,6 +19,7 @@ from autobahn.asyncio.wamp import ApplicationSession
 from autobahn.asyncio.wamp import ApplicationRunner
 import asyncio
 import logging
+import traceback
 from functools import partial
 
 logger = logging.getLogger(__name__)
@@ -77,6 +78,10 @@ class GlotConnector(ApplicationSession):
 
         try:
             self.result = yield from self._action(self.execute_call, self.log, **self._kwargs)
+        except Exception as e:
+            logging.exception("Problem executing action")
+            traceback.print_exc()
+            raise e
         finally:
             self.leave()
 
