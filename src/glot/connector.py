@@ -32,7 +32,7 @@ def execute(action, server, router, port, debug=False, **kwargs):
         logging.getLogger('autobahn').setLevel(logging.DEBUG)
 
     runner = ApplicationRunner(url="ws://%s:%d/ws" % (router, port), realm="realm1")
-    logger.info("Starting connection")
+    logger.debug("Starting connection")
     runner.run(partial(GlotConnector, responses=responses, action=action, debug=debug, server=server, **kwargs))
     return responses.pop() if responses else None
 
@@ -61,7 +61,8 @@ class GlotConnector(ApplicationSession):
         if debug:
             # Seemingly the start_logging call is insufficient
             self.log._set_level('debug')
-        logger.info("Targeting server [%s]" % (server))
+        if server or debug:
+            logger.info("Targeting server [%s]" % (server))
 
     def make_call(self, suffix):
         # If we have a specific server, address it, otherwise we call whichever
@@ -74,7 +75,7 @@ class GlotConnector(ApplicationSession):
     @wrapped_coroutine
     @asyncio.coroutine
     def onJoin(self, details):
-        logger.info("Session ready - executing action")
+        logger.debug("Session ready - executing action")
 
         try:
             self.result = yield from self._action(self.execute_call, self.log, **self._kwargs)
@@ -85,7 +86,7 @@ class GlotConnector(ApplicationSession):
         finally:
             self.leave()
 
-        logger.info("Executed")
+        logger.debug("Executed")
 
     @asyncio.coroutine
     def execute_call(self, suffix, *args, minapi='A0.0'):

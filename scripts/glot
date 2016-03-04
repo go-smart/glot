@@ -56,7 +56,7 @@ class OneFileHttpServer:
         fut = asyncio.Future()
 
         def receive(request):
-            log.info('Got request')
+            log.debug('Got request')
             yield from request.post()
             try:
                 with open(filename, 'wb') as f:
@@ -70,7 +70,7 @@ class OneFileHttpServer:
             return web.Response(body=b"Accepted")
 
         app = web.Application()
-        log.info('Adding POST route at /receive')
+        log.debug('Adding POST route at /receive')
         app.router.add_route('POST', '/receive', receive)
 
         loop = asyncio.get_event_loop()
@@ -323,18 +323,18 @@ def _inspect(log, archive, to, force=False, mode='goosefoot', verbose=False):
             pass
 
     rootpath = path
-    log.info("Extracting to {path}".format(path=path))
+    log.debug("Extracting to {path}".format(path=path))
 
     repo_location = _repo_locations[mode]
-    log.info("Cloning control from {loc}".format(loc=repo_location))
+    log.debug("Cloning control from {loc}".format(loc=repo_location))
     Repo.clone_from(repo_location, path)
 
-    log.info("Opening diagnostic archive {arc}".format(arc=archive))
+    log.debug("Opening diagnostic archive {arc}".format(arc=archive))
     with tarfile.open(archive, 'r') as t:
         members = t.getmembers()
         names = [m.name for m in members if not m.isdir()]
         prefix = os.path.commonprefix(names)
-        log.info("Stripping prefix {prefix}".format(prefix=prefix))
+        log.debug("Stripping prefix {prefix}".format(prefix=prefix))
 
         inp = os.path.join(prefix, 'input')
         inpfinal = os.path.join(prefix, 'input.final')
