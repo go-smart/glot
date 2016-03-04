@@ -83,21 +83,27 @@ class GlotConnector(ApplicationSession):
         logger.info("Executed")
 
     @asyncio.coroutine
-    def execute_call(self, suffix, minapi='A0.0', *args):
+    def execute_call(self, suffix, *args, minapi='A0.0'):
         if minapi:
             if suffix in self._apis:
                 api = self._apis[suffix]
             else:
                 try:
-                    api = yield from self.call(self.make_call(suffix), *args)
+                    api = yield from self.call(self.make_call('api'))
+                    api = str(api)
                 except:
                     api = 'A0.0'
                 self._apis[suffix] = api
 
-            isapi, minapi = api[0], api[1:]
+            isapi, api = api[0], api[1:]
 
-            if isapi:
-                raise RuntimeError('API unknown')
+            if isapi != 'A':
+                raise RuntimeError('Remote API unknown - %s%s' % (isapi, api))
+
+            api = float(api)
+            minapi = float(minapi[1:])
+            if api < minapi:
+                raise NotImplementedError('The API version of the remote server is too low for this operation (%.1lf < %.1lf)' % (api, minapi))
 
         try:
             result = yield from self.call(self.make_call(suffix), *args)

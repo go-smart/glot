@@ -186,10 +186,14 @@ def results(mc, log, guid, target, include_diagnostic, inspect_diagnostic, ctx):
     else:
         srv = None
 
-    yield from mc('request_results', guid.upper(), target)
+    success = yield from mc('request_results', guid.upper(), target)
+
+    if not success:
+        log.error('Simulation not found')
 
     if srv is not None:
-        filename = yield from srv.wait()
+        if success:
+            filename = yield from srv.wait()
         yield from srv.close()
 
     to = ctx.obj['DESTINATION'] if not target else None
