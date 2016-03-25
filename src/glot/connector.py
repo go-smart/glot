@@ -60,7 +60,7 @@ class GlotConnector(ApplicationSession):
         self._apis = {}
         if debug:
             # Seemingly the start_logging call is insufficient
-            self.log._set_level('debug')
+            self.log._set_level('trace')
         if server or debug:
             logger.info("Targeting server [%s]" % (server))
 

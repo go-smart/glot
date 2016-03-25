@@ -31,6 +31,7 @@ import txaio
 import tabulate
 import datetime
 import colorama as C
+import json
 
 from glot.connector import execute
 
@@ -120,16 +121,18 @@ def execute_command(f):
 @click.option('--force', is_flag=True, help='Overwrite when necessary')
 @click.option('--debug', default=False, is_flag=True)
 @click.option('--color/--no-color', default=True, is_flag=True, help='Color output to terminal')
+@click.option('-v', '--verbose', is_flag=True)
 @click.pass_context
-def cli(ctx, server, router, port, to, force, debug, color):
+def cli(ctx, server, router, port, to, force, debug, color, verbose):
     """Manage Glossia from the CLI"""
     ctx.obj['SERVER'] = (server, router, port)
     ctx.obj['DESTINATION'] = to
     ctx.obj['DEBUG'] = debug
     ctx.obj['FORCE'] = force
     ctx.obj['COLOR'] = color
+    ctx.obj['VERBOSE'] = verbose
     if debug:
-        txaio.start_logging(level='debug')
+        txaio.start_logging(level='trace')
     else:
         txaio.start_logging(level='info')
 
@@ -153,19 +156,40 @@ def search(mc, log, limit, server_limit, sort, guid, ctx):
         'GUID',
         'Set Up',
         'Last status',
+        '%',
         '',
         'Completed'
     ]
-    table = [[
-        g,
-        'Y' if d['finalized'] else 'N',
-        '' if not d['status'] else datetime.datetime.fromtimestamp(d['status']['timestamp']).strftime('%A %d, %B %Y :: %H:%M:%S'),
-        '' if not d['status'] else d['status']['message'].replace('\n', ' ')[0:60],
-        '-' if not d['exit_status'] else ('Y' if d['exit_status'][0] in (True, 'SUCCESS') else 'N')
-    ] for g, d in definitions.items()]
+
+    for d in definitions.values():
+        if d['status']:
+            try:
+                float(d['status']['percentage'])
+            except:
+                d['status']['percentage'] = False
+
+    g, d = "", ""
+    table = []
+    for g, d in definitions.items():
+        try:
+            status = d['status'] if d['status'] else {'percentage': False, 'message': None, 'timestamp': None}
+
+            table.append([
+                g,
+                'Y' if d['finalized'] else 'N',
+                '' if not status['timestamp'] else datetime.datetime.fromtimestamp(status['timestamp']).strftime('%A %d, %B %Y :: %H:%M:%S'),
+                '' if not status['percentage'] else ("%.2lf" % status['percentage']),
+                '' if not status['message'] else status['message'].replace('\n', ' ')[0:60],
+                '-' if not d['exit_status'] else ('Y' if d['exit_status'][0] in (True, 'SUCCESS') else 'N')
+            ])
+        except Exception as e:
+            log.error('Could not format status for a simulation')
+            log.error(str(e))
+            log.error(g)
+            log.error(str(d).replace('{', '[').replace('}', ']'))
 
     if sort == 'timestamp':
-        table.sort(key=lambda r: -definitions[r[0]]['status']['timestamp'])
+        table.sort(key=lambda r: -definitions[r[0]]['status']['timestamp'] if definitions[r[0]]['status']['timestamp'] else 0)
     elif sort == 'guid':
         table.sort(key=lambda r: r[0])
 
@@ -180,7 +204,7 @@ def search(mc, log, limit, server_limit, sort, guid, ctx):
 
 
 @cli.command()
-@click.option('--target', default=None)
+@click.option('-t', '--target', default=None)
 @click.option('-d', '--include-diagnostic', default=False, is_flag=True)
 @click.option('-i', '--inspect-diagnostic', default=False, is_flag=True)
 @click.argument('guid')
@@ -212,20 +236,55 @@ def results(mc, log, guid, target, include_diagnostic, inspect_diagnostic, ctx):
             filename = yield from srv.wait()
         yield from srv.close()
 
-    to = ctx.obj['DESTINATION'] if not target else None
+    if not target and not ctx.obj['DESTINATION']:
+        ctx.obj['DESTINATION'] = '.'
 
     if include_diagnostic:
         yield from _diagnostic(mc, log, guid, target, inspect_diagnostic, ctx)
 
-    if to:
+    if not target and inspect_diagnostic:
+        to = ctx.obj['DESTINATION']
         os.makedirs(to, exist_ok=True)
         with tarfile.open(filename) as f:
             f.extractall(path=to)
 
 
 @cli.command()
-@click.option('--target', default=None)
-@click.option('--inspect', is_flag=True)
+@click.argument('guid')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def cancel(mc, log, guid, ctx):
+    """Cancel a running simulation"""
+
+    success = yield from mc('cancel', guid.upper())
+
+    if success:
+        log.info('Cancelled [%s]' % guid)
+    else:
+        log.error('Could not cancel [%s]' % guid)
+
+
+@cli.command()
+@click.argument('guid')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def status(mc, log, guid, ctx):
+    """Get status of a simulation"""
+
+    simulation = yield from mc('retrieve_status', guid.upper())
+
+    if not simulation:
+        log.error('Simulation [%s] not found' % guid)
+    else:
+        table = simulation.items()
+        print(tabulate.tabulate(table))
+
+
+@cli.command()
+@click.option('-t', '--target', default=None)
+@click.option('-i', '--inspect', is_flag=True)
 @click.argument('guid')
 @click.pass_context
 @execute_command
@@ -281,25 +340,20 @@ def _diagnostic(mc, log, guid, target, inspect, ctx):
             prefix = os.path.commonprefix(names)
 
         log.debug("Inspecting %s" % filename)
-        _inspect(log, filename, os.path.join(to, prefix), ctx.obj['FORCE'])
-
-    if to:
-        os.makedirs(to, exist_ok=True)
-        with tarfile.open(filename) as f:
-            f.extractall(path=to)
+        _inspect(log, filename, os.path.join(to, prefix) if to else None, ctx.obj['FORCE'], verbose=ctx.obj['VERBOSE'])
 
     return filename
 
 
 @cli.command()
 @click.option('--mode', default='goosefoot')
-@click.option('--verbose', is_flag=True)
 @click.argument('archive')
 @click.pass_context
-def inspect(ctx, archive, mode='goosefoot', verbose=False):
+def inspect(ctx, archive, mode='goosefoot'):
     """Examine a diagnostic bundle"""
     log = logging.getLogger()
     to = ctx.obj['DESTINATION']
+    verbose = ctx.obj['VERBOSE']
     _inspect(log, archive, to, ctx.obj['FORCE'], mode, verbose)
 
 
@@ -308,14 +362,13 @@ def _inspect(log, archive, to, force=False, mode='goosefoot', verbose=False):
         raise RuntimeError("You must supply a diagnostic archive")
 
     if to:
-        os.makedirs(to, exist_ok=True)
         path = to
     else:
         path = os.path.splitext(archive)[0]
 
     if not force:
         if os.path.exists(path):
-            raise FileExistsError("Run with --force to remove existing diagnostic directory")
+            raise FileExistsError("Run with --force to remove existing diagnostic directory (%s)" % path)
     else:
         try:
             shutil.rmtree(path)
