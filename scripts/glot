@@ -186,6 +186,7 @@ def search(mc, log, limit, server_limit, sort, guid, ctx):
             log.error('Could not format status for a simulation')
             log.error(str(e))
             log.error(g)
+            # Work around txaio's {} parsing
             log.error(str(d).replace('{', '[').replace('}', ']'))
 
     if sort == 'timestamp':
