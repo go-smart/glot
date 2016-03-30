@@ -21,83 +21,10 @@
 
 import click
 import asyncio
-from aiohttp import web
-import os
-import tarfile
-import logging
-from git import Repo
-import shutil
 import txaio
-import tabulate
-import datetime
-import colorama as C
-import json
 
 from glot.connector import execute
-
-_default_server_port = 18103
-
-
-_repo_locations = {
-    'goosefoot': 'https://github.com/go-smart/glossia-container-goosefoot-control'
-}
-
-
-class OneFileHttpServer:
-    def __init__(self, log, app, srv, handler, fut):
-        self._app = app
-        self._srv = srv
-        self._handler = handler
-        self._log = log
-        self._fut = fut
-
-    @classmethod
-    @asyncio.coroutine
-    def make(cls, log, filename):
-        fut = asyncio.Future()
-
-        def receive(request):
-            log.debug('Got request')
-            yield from request.post()
-            try:
-                with open(filename, 'wb') as f:
-                    g = request.POST['file'].file
-                    f.write(g.read())
-                fut.set_result(filename)
-            except:
-                log.exception('Could not receive file')
-                fut.set_result(None)
-
-            return web.Response(body=b"Accepted")
-
-        app = web.Application()
-        log.debug('Adding POST route at /receive')
-        app.router.add_route('POST', '/receive', receive)
-
-        loop = asyncio.get_event_loop()
-        handler = app.make_handler()
-
-        # FIXME: this should be tied to the Docker interface,
-        # when we have a good way of calculating it
-        srv = yield from loop.create_server(handler, '0.0.0.0', _default_server_port)
-
-        return cls(log, app, srv, handler, fut)
-
-    def cancel(self):
-        self._fut.cancel()
-
-    @asyncio.coroutine
-    def wait(self):
-        yield from self._fut
-        return self._fut.result()
-
-    @asyncio.coroutine
-    def close(self):
-        self._srv.close()
-        yield from self._srv.wait_closed()
-        yield from self._app.shutdown()
-        yield from self._handler.finish_connections(60.0)
-        yield from self._app.cleanup()
+import glot.actions as actions
 
 
 def execute_command(f):
@@ -106,6 +33,7 @@ def execute_command(f):
         kwargs['debug'] = ctx.obj['DEBUG']
         execute(
             f,
+            ctx.obj['ACTOR'],
             *ctx.obj['SERVER'],
             **kwargs
         )
@@ -126,11 +54,9 @@ def execute_command(f):
 def cli(ctx, server, router, port, to, force, debug, color, verbose):
     """Manage Glossia from the CLI"""
     ctx.obj['SERVER'] = (server, router, port)
-    ctx.obj['DESTINATION'] = to
     ctx.obj['DEBUG'] = debug
-    ctx.obj['FORCE'] = force
-    ctx.obj['COLOR'] = color
-    ctx.obj['VERBOSE'] = verbose
+    ctx.obj['ACTOR'] = actions.GlotActor(verbose, force, to, color)
+
     if debug:
         txaio.start_logging(level='trace')
     else:
@@ -145,63 +71,23 @@ def cli(ctx, server, router, port, to, force, debug, color, verbose):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def search(mc, log, limit, server_limit, sort, guid, ctx):
+def search(actor, limit, server_limit, sort, guid, ctx):
     """Check for definitions match GUID (prefix)"""
 
-    color = ctx.obj['COLOR']
+    yield from actor._search(limit, server_limit, sort, guid)
 
-    definitions = yield from mc('search', guid.upper(), server_limit)
 
-    headers = [
-        'GUID',
-        'Set Up',
-        'Last status',
-        '%',
-        '',
-        'Completed'
-    ]
+@cli.command()
+@click.option('--limit', default=15)
+@click.option('--server-limit', default=1000)
+@click.option('--sort', default='timestamp')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def table(actor, limit, server_limit, sort, ctx):
+    """Provide a basic table of recent simulations (very similar to search with no args)"""
 
-    for d in definitions.values():
-        if d['status']:
-            try:
-                float(d['status']['percentage'])
-            except:
-                d['status']['percentage'] = False
-
-    g, d = "", ""
-    table = []
-    for g, d in definitions.items():
-        try:
-            status = d['status'] if d['status'] else {'percentage': False, 'message': None, 'timestamp': None}
-
-            table.append([
-                g,
-                'Y' if d['finalized'] else 'N',
-                '' if not status['timestamp'] else datetime.datetime.fromtimestamp(status['timestamp']).strftime('%A %d, %B %Y :: %H:%M:%S'),
-                '' if not status['percentage'] else ("%.2lf" % status['percentage']),
-                '' if not status['message'] else status['message'].replace('\n', ' ')[0:60],
-                '-' if not d['exit_status'] else ('Y' if d['exit_status'][0] in (True, 'SUCCESS') else 'N')
-            ])
-        except Exception as e:
-            log.error('Could not format status for a simulation')
-            log.error(str(e))
-            log.error(g)
-            # Work around txaio's {} parsing
-            log.error(str(d).replace('{', '[').replace('}', ']'))
-
-    if sort == 'timestamp':
-        table.sort(key=lambda r: -definitions[r[0]]['status']['timestamp'] if definitions[r[0]]['status']['timestamp'] else 0)
-    elif sort == 'guid':
-        table.sort(key=lambda r: r[0])
-
-    if limit:
-        table = table[:limit]
-
-    if color:
-        ce = {'-': C.Fore.YELLOW, 'Y': C.Fore.GREEN, 'N': C.Fore.RED}
-        table = [[ce[d[-1]] + d[0]] + d[1:-1] + [d[-1] + C.Style.RESET_ALL] for d in table]
-
-    print(tabulate.tabulate(table, headers=headers))
+    yield from actor.search(limit, server_limit, sort, None, fancy=True)
 
 
 @cli.command()
@@ -212,42 +98,10 @@ def search(mc, log, limit, server_limit, sort, guid, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def results(mc, log, guid, target, include_diagnostic, inspect_diagnostic, ctx):
+def results(actor, guid, target, include_diagnostic, inspect_diagnostic, ctx):
     """Push results data to the webserver"""
 
-    filename = None
-    include_diagnostic = include_diagnostic or inspect_diagnostic
-
-    if target is None:
-        log.warn(
-            "No target given, assuming we should provide "
-            "a target for a local Glossia"
-        )
-        srv = yield from OneFileHttpServer.make(log, '%s-results.tgz' % guid)
-    else:
-        srv = None
-
-    success = yield from mc('request_results', guid.upper(), target)
-
-    if not success:
-        log.error('Simulation not found')
-
-    if srv is not None:
-        if success:
-            filename = yield from srv.wait()
-        yield from srv.close()
-
-    if not target and not ctx.obj['DESTINATION']:
-        ctx.obj['DESTINATION'] = '.'
-
-    if include_diagnostic:
-        yield from _diagnostic(mc, log, guid, target, inspect_diagnostic, ctx)
-
-    if not target and inspect_diagnostic:
-        to = ctx.obj['DESTINATION']
-        os.makedirs(to, exist_ok=True)
-        with tarfile.open(filename) as f:
-            f.extractall(path=to)
+    yield from actor.results(guid, target, include_diagnostic, inspect_diagnostic)
 
 
 @cli.command()
@@ -255,15 +109,10 @@ def results(mc, log, guid, target, include_diagnostic, inspect_diagnostic, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def cancel(mc, log, guid, ctx):
+def cancel(actor, guid, ctx):
     """Cancel a running simulation"""
 
-    success = yield from mc('cancel', guid.upper())
-
-    if success:
-        log.info('Cancelled [%s]' % guid)
-    else:
-        log.error('Could not cancel [%s]' % guid)
+    yield from actor.cancel(guid)
 
 
 @cli.command()
@@ -271,16 +120,10 @@ def cancel(mc, log, guid, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def status(mc, log, guid, ctx):
+def status(actor, guid, ctx):
     """Get status of a simulation"""
 
-    simulation = yield from mc('retrieve_status', guid.upper())
-
-    if not simulation:
-        log.error('Simulation [%s] not found' % guid)
-    else:
-        table = simulation.items()
-        print(tabulate.tabulate(table))
+    yield from actor.status(guid)
 
 
 @cli.command()
@@ -290,60 +133,26 @@ def status(mc, log, guid, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def diagnostic(mc, log, guid, target, inspect, ctx):
+def diagnostic(actor, guid, target, inspect, ctx):
     """Push diagnostic data to the webserver"""
 
-    yield from _diagnostic(mc, log, guid, target, inspect, ctx)
+    yield from actor.diagnostic(guid, target, inspect)
 
 
-def _diagnostic(mc, log, guid, target, inspect, ctx):
-    filename = None
+@cli.command()
+@click.option('--tmp-subdirectory', default='.', help="subdirectory containing input files")
+@click.option('--tmp-directory', default='/tmp/gssa-transferrer', help="location of the mounted transferrer directory")
+@click.option('--skip-clean', is_flag=True, help="do not clean up after run")
+@click.option('--input', '-i', multiple=True, help="input files for surfaces, etc.")
+@click.option('--definition', '-d', multiple=True, help="file(s) containing module / text of the definition node (which should exist but be empty in the GSSA file)")
+@click.argument('gssa-xml', default='original.xml')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def launch(actor, gssa_xml, tmp_subdirectory, tmp_directory, skip_clean, input, definition):
+    """Launch a simulation"""
 
-    if target is None:
-        log.warn(
-            "No target given, assuming we should provide "
-            "a target for a local Glossia"
-        )
-        srv = yield from OneFileHttpServer.make(log, '%s-diagnostic.tgz' % guid)
-    else:
-        srv = None
-
-    files = yield from mc('request_diagnostic', guid.upper(), target)
-
-    if srv is not None:
-        if files:
-            filename = yield from srv.wait()
-        else:
-            srv.cancel()
-        srv.close()
-
-    if files:
-        log.info("FILES:\n\t%s" % "\n\t".join(["[%s]: [%s]" % t for t in files.items()]))
-    else:
-        log.warn("No simulation diagnostics found")
-
-    to = ctx.obj['DESTINATION'] if not target else None
-    if inspect:
-        log.debug("Inspect")
-        if filename is None:
-            if len(files) < 1:
-                raise RuntimeError("No diagnostic files returned")
-            elif len(files) > 1:
-                raise RuntimeError("Multiple diagnostic files, run inspect manually")
-
-            filename = files.popitem()
-            log.debug("Using %s: %s" % filename)
-            filename = filename[0]
-
-        with tarfile.open(filename, 'r') as t:
-            members = t.getmembers()
-            names = [m.name for m in members if not m.isdir()]
-            prefix = os.path.commonprefix(names)
-
-        log.debug("Inspecting %s" % filename)
-        _inspect(log, filename, os.path.join(to, prefix) if to else None, ctx.obj['FORCE'], verbose=ctx.obj['VERBOSE'])
-
-    return filename
+    yield from actor.launch(gssa_xml, tmp_subdirectory, tmp_directory, skip_clean, input, definition)
 
 
 @cli.command()
@@ -352,76 +161,9 @@ def _diagnostic(mc, log, guid, target, inspect, ctx):
 @click.pass_context
 def inspect(ctx, archive, mode='goosefoot'):
     """Examine a diagnostic bundle"""
-    log = logging.getLogger()
-    to = ctx.obj['DESTINATION']
-    verbose = ctx.obj['VERBOSE']
-    _inspect(log, archive, to, ctx.obj['FORCE'], mode, verbose)
 
-
-def _inspect(log, archive, to, force=False, mode='goosefoot', verbose=False):
-    if not os.path.exists(archive):
-        raise RuntimeError("You must supply a diagnostic archive")
-
-    if to:
-        path = to
-    else:
-        path = os.path.splitext(archive)[0]
-
-    if not force:
-        if os.path.exists(path):
-            raise FileExistsError("Run with --force to remove existing diagnostic directory (%s)" % path)
-    else:
-        try:
-            shutil.rmtree(path)
-        except FileNotFoundError:
-            pass
-
-    rootpath = path
-    log.debug("Extracting to {path}".format(path=path))
-
-    repo_location = _repo_locations[mode]
-    log.debug("Cloning control from {loc}".format(loc=repo_location))
-    Repo.clone_from(repo_location, path)
-
-    log.debug("Opening diagnostic archive {arc}".format(arc=archive))
-    with tarfile.open(archive, 'r') as t:
-        members = t.getmembers()
-        names = [m.name for m in members if not m.isdir()]
-        prefix = os.path.commonprefix(names)
-        log.debug("Stripping prefix {prefix}".format(prefix=prefix))
-
-        inp = os.path.join(prefix, 'input')
-        inpfinal = os.path.join(prefix, 'input.final')
-        try:
-            t.getmember(inp)
-        except KeyError:
-            try:
-                t.getmember(inpfinal)
-            except KeyError:
-                path = os.path.join(path, 'input')
-                os.makedirs(path)
-
-        for m in members:
-            if m.name.startswith(prefix):
-                outpath = os.path.join(path, m.name[len(prefix):])
-                outpath = outpath.replace('input.final', 'input')
-
-                if verbose:
-                    log.info("{fm} --> {to}".format(fm=m.name, to=outpath))
-
-                if m.isdir():
-                    os.makedirs(outpath)
-                else:
-                    with open(outpath, 'wb') as f, t.extractfile(m) as g:
-                        shutil.copyfileobj(g, f)
-
-    log.info("Done extracting")
-
-    if mode is 'goosefoot':
-        shutil.copyfile(
-            os.path.join(rootpath, 'input', 'settings.xml'),
-            os.path.join(rootpath, 'settings', 'settings.xml')
-        )
+    actor = ctx['ACTOR']
+    actor.inspect(archive, ctx.obj['FORCE'], mode)
 
 
 if __name__ == '__main__':

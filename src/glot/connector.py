@@ -25,7 +25,7 @@ from functools import partial
 logger = logging.getLogger(__name__)
 
 
-def execute(action, server, router, port, debug=False, **kwargs):
+def execute(action, actor, server, router, port, debug=False, **kwargs):
     responses = []
     if debug:
         logger.info("DEBUG ON")
@@ -33,7 +33,7 @@ def execute(action, server, router, port, debug=False, **kwargs):
 
     runner = ApplicationRunner(url="ws://%s:%d/ws" % (router, port), realm="realm1")
     logger.debug("Starting connection")
-    runner.run(partial(GlotConnector, responses=responses, action=action, debug=debug, server=server, **kwargs))
+    runner.run(partial(GlotConnector, responses=responses, action=action, actor=actor, debug=debug, server=server, **kwargs))
     return responses.pop() if responses else None
 
 
@@ -51,13 +51,19 @@ def wrapped_coroutine(f):
 class GlotConnector(ApplicationSession):
 
     # Accept arguments from the command line
-    def __init__(self, x, responses, action, debug, server=None, **kwargs):
+    def __init__(self, x, responses, action, actor, debug, server=None, **kwargs):
         ApplicationSession.__init__(self, x)
         self._kwargs = kwargs
         self._action = action
         self._server = server
         self._responses = responses
+
+        self._actor = actor
+        self._actor.set_make_call(self.execute_call)
+        self._actor.set_log(self.log)
+
         self._apis = {}
+
         if debug:
             # Seemingly the start_logging call is insufficient
             self.log._set_level('trace')
@@ -78,7 +84,7 @@ class GlotConnector(ApplicationSession):
         logger.debug("Session ready - executing action")
 
         try:
-            self.result = yield from self._action(self.execute_call, self.log, **self._kwargs)
+            self.result = yield from self._action(self._actor, **self._kwargs)
         except Exception as e:
             logging.exception("Problem executing action")
             traceback.print_exc()
