@@ -29,7 +29,6 @@ import glot.actions as actions
 
 def execute_command(f):
     def run(ctx, **kwargs):
-        kwargs['ctx'] = ctx
         kwargs['debug'] = ctx.obj['DEBUG']
         execute(
             f,
@@ -71,7 +70,7 @@ def cli(ctx, server, router, port, to, force, debug, color, verbose):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def search(actor, limit, server_limit, sort, guid, ctx):
+def search(actor, limit, server_limit, sort, guid):
     """Check for definitions match GUID (prefix)"""
 
     yield from actor._search(limit, server_limit, sort, guid)
@@ -84,7 +83,7 @@ def search(actor, limit, server_limit, sort, guid, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def table(actor, limit, server_limit, sort, ctx):
+def table(actor, limit, server_limit, sort):
     """Provide a basic table of recent simulations (very similar to search with no args)"""
 
     yield from actor.search(limit, server_limit, sort, None, fancy=True)
@@ -98,7 +97,7 @@ def table(actor, limit, server_limit, sort, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def results(actor, guid, target, include_diagnostic, inspect_diagnostic, ctx):
+def results(actor, guid, target, include_diagnostic, inspect_diagnostic):
     """Push results data to the webserver"""
 
     yield from actor.results(guid, target, include_diagnostic, inspect_diagnostic)
@@ -109,7 +108,7 @@ def results(actor, guid, target, include_diagnostic, inspect_diagnostic, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def cancel(actor, guid, ctx):
+def cancel(actor, guid):
     """Cancel a running simulation"""
 
     yield from actor.cancel(guid)
@@ -120,7 +119,7 @@ def cancel(actor, guid, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def status(actor, guid, ctx):
+def status(actor, guid):
     """Get status of a simulation"""
 
     yield from actor.status(guid)
@@ -133,7 +132,7 @@ def status(actor, guid, ctx):
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def diagnostic(actor, guid, target, inspect, ctx):
+def diagnostic(actor, guid, target, inspect):
     """Push diagnostic data to the webserver"""
 
     yield from actor.diagnostic(guid, target, inspect)
@@ -142,17 +141,16 @@ def diagnostic(actor, guid, target, inspect, ctx):
 @cli.command()
 @click.option('--tmp-subdirectory', default='.', help="subdirectory containing input files")
 @click.option('--tmp-directory', default='/tmp/gssa-transferrer', help="location of the mounted transferrer directory")
-@click.option('--skip-clean', is_flag=True, help="do not clean up after run")
 @click.option('--input', '-i', multiple=True, help="input files for surfaces, etc.")
 @click.option('--definition', '-d', multiple=True, help="file(s) containing module / text of the definition node (which should exist but be empty in the GSSA file)")
 @click.argument('gssa-xml', default='original.xml')
 @click.pass_context
 @execute_command
 @asyncio.coroutine
-def launch(actor, gssa_xml, tmp_subdirectory, tmp_directory, skip_clean, input, definition):
+def launch(actor, gssa_xml, tmp_subdirectory, tmp_directory, input, definition):
     """Launch a simulation"""
 
-    yield from actor.launch(gssa_xml, tmp_subdirectory, tmp_directory, skip_clean, input, definition)
+    yield from actor.launch(gssa_xml, tmp_subdirectory, tmp_directory, input, definition)
 
 
 @cli.command()
@@ -163,7 +161,7 @@ def inspect(ctx, archive, mode='goosefoot'):
     """Examine a diagnostic bundle"""
 
     actor = ctx['ACTOR']
-    actor.inspect(archive, ctx.obj['FORCE'], mode)
+    actor.inspect(archive, mode)
 
 
 if __name__ == '__main__':

@@ -44,7 +44,7 @@ class GlotActor:
             log.error('Could not cancel [%s]' % guid)
 
     @asyncio.coroutine
-    def launch(self, gssa_xml, tmp_subdirectory, tmp_directory, skip_clean, input_files, definition_files):
+    def launch(self, gssa_xml, tmp_subdirectory, tmp_directory, input_files, definition_files):
         gssa = lxml.etree.parse(gssa_xml)
         log = self._log
         mc = self._mc
@@ -153,14 +153,15 @@ class GlotActor:
         if not target and not self._destination:
             self._destination = '.'
 
+        destination = self._destination
+
         if include_diagnostic:
             yield from self._diagnostic(guid, target, inspect_diagnostic)
 
         if not target and inspect_diagnostic:
-            to = self._destination
-            os.makedirs(to, exist_ok=True)
+            os.makedirs(destination, exist_ok=True)
             with tarfile.open(filename) as f:
-                f.extractall(path=to)
+                f.extractall(path=destination)
 
     @asyncio.coroutine
     def search(self, limit, server_limit, sort, guid, fancy=False):
@@ -273,20 +274,23 @@ class GlotActor:
                 prefix = os.path.commonprefix(names)
 
             log.debug("Inspecting %s" % filename)
-            self._inspect(filename, os.path.join(to, prefix) if to else None)
+            self._inspect(filename, destination=os.path.join(to, prefix) if to else None)
 
         return filename
 
-    def inspect(self, archive, to, mode='goosefoot'):
+    def inspect(self, archive, destination=None, mode='goosefoot'):
         log = self._log
         verbose = self._verbose
         force = self._force
 
+        if not destination:
+            destination = self._destination
+
         if not os.path.exists(archive):
             raise RuntimeError("You must supply a diagnostic archive")
 
-        if to:
-            path = to
+        if destination:
+            path = destination
         else:
             path = os.path.splitext(archive)[0]
 
