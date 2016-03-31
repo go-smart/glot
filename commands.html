@@ -1,0 +1,434 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Commands &mdash; Glot 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Glot 0.2 documentation" href="index.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Glot 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="commands">
+<h1>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h1>
+<p>Glot has a number of commands that allow it to act as a complete
+client for Glossia. These should be included as described in
+&lt;usage&gt;, bearing in mind that global arguments, preceding the
+command, may or may not modify behaviour
+(e.g. <code class="docutils literal"><span class="pre">--to</span></code> is relevant only for commands retrieving files
+from the Glossia server).</p>
+<p>The most commonly used commands are likely to be:</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">glot</span> <span class="pre">table</span></code></p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">glot</span> <span class="pre">results</span> <span class="pre">-i</span> <span class="pre">UUID</span></code> (successful simulations)</p>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">glot</span> <span class="pre">diagnostic</span> <span class="pre">-i</span> <span class="pre">UUID</span></code> (failed simulations)</p>
+</li>
+<li><div class="first line-block">
+<div class="line"><code class="docutils literal"><span class="pre">glot</span> <span class="pre">diagnostic</span> <span class="pre">-d</span> <span class="pre">UUID</span></code></div>
+<div class="line">Transfer <code class="docutils literal"><span class="pre">UUID-results.tgz</span></code></div>
+<div class="line"><code class="docutils literal"><span class="pre">glot</span> <span class="pre">inspect</span> <span class="pre">UUID-results.tgz</span></code> (remote Glossia)</div>
+</div>
+</li>
+</ul>
+<p>In general, UUIDs may be given only as the first few characters,
+provided that this specifies them uniquely on the server.</p>
+<div class="section" id="search">
+<h2>Search<a class="headerlink" href="#search" title="Permalink to this headline">¶</a></h2>
+<p>Search UUID or UUIDs matching a given prefix. Prints a table
+showing most recent status of matching simulations on the
+Glossia server.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot search <span class="o">[</span>--limit LIMIT<span class="o">]</span> <span class="o">[</span>--server-limit SERVERLIMIT<span class="o">]</span>
+    <span class="o">[</span>--sort SORT<span class="o">]</span> <span class="o">[</span>GUID<span class="o">]</span>
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>GUID</td>
+<td>(prefix of or) GUID to search for on server</td>
+</tr>
+<tr class="row-odd"><td>&#8211;limit LIMIT</td>
+<td>maximum number of entries to display (default: 10)</td>
+</tr>
+<tr class="row-even"><td>&#8211;server-limit SERVERLIMIT</td>
+<td>maximum number of entries for the server to retrieve
+from the DB (NB: pre-sorting) (default: 1000)</td>
+</tr>
+<tr class="row-odd"><td>&#8211;sort SORT</td>
+<td>order returned entries by SORT, which may be either
+&#8216;timestamp&#8217; or &#8216;guid&#8217; (default: timestamp)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="table">
+<h2>Table<a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h2>
+<p>Show a table of simulations. Slightly prettier, more intuitive alternative to using
+<code class="docutils literal"><span class="pre">glot</span> <span class="pre">search</span></code> with no arguments.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot table <span class="o">[</span>--limit LIMIT<span class="o">]</span> <span class="o">[</span>--server-limit SERVERLIMIT<span class="o">]</span> <span class="o">[</span>--sort SORT<span class="o">]</span>
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#8211;limit LIMIT</td>
+<td>maximum number of entries to display (default: 10)</td>
+</tr>
+<tr class="row-odd"><td>&#8211;server-limit SERVERLIMIT</td>
+<td>maximum number of entries for the server to retrieve
+from the DB (NB: pre-sorting) (default: 1000)</td>
+</tr>
+<tr class="row-even"><td>&#8211;sort SORT</td>
+<td>order returned entries by SORT, which may be either
+&#8216;timestamp&#8217; or &#8216;guid&#8217; (default: timestamp)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="results">
+<h2>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h2>
+<p>Retrieve results of a simulation. Note that this does not retrieve run-time output, which Glossia
+has no access to, only output that has been returned from simulation container. For manual
+inspection, this is most useful
+in conjunction with the <code class="docutils literal"><span class="pre">-i</span></code> or <code class="docutils literal"><span class="pre">-d</span></code> flags, which bundle diagnostic output.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot results <span class="o">[</span>--target TARGET<span class="o">]</span> <span class="o">([</span>--include-diagnostic/-d<span class="o">]</span> <span class="p">|</span> <span class="o">[</span>--inspect-diagnostic/-i<span class="o">])</span> GUID
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>GUID</td>
+<td>(prefix of or) GUID to cancel on server. Must be unique</td>
+</tr>
+<tr class="row-odd"><td>&#8211;target TARGET</td>
+<td>server for Glossia to push output bundles to using HTTP
+POST commands (on port 18103). By default, Glot will
+start an HTTP server and Glossia will look for it on the
+network gateway IP</td>
+</tr>
+<tr class="row-even"><td>&#8211;include-diagnostic</td>
+<td>combine this command with the <code class="docutils literal"><span class="pre">diagnostic</span></code> command to
+grab both bundles of data</td>
+</tr>
+<tr class="row-odd"><td>&#8211;inspect-diagnostic</td>
+<td>combine this command with the <code class="docutils literal"><span class="pre">diagnostic</span></code> and
+<code class="docutils literal"><span class="pre">inspect</span></code> commands to produce a ready-to-run local
+simulation</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="cancel">
+<h2>Cancel<a class="headerlink" href="#cancel" title="Permalink to this headline">¶</a></h2>
+<p>Interrupt a running simulation. Will raise an <code class="docutils literal"><span class="pre">E_CANCELLED</span></code> error on Glossia
+(<a class="reference external" href="https://go-smart.github.io/glossia/reference/errors">more information</a>).</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot cancel GUID
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>GUID</td>
+<td>(prefix of or) GUID to cancel on server. Must be unique</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="status">
+<h2>Status<a class="headerlink" href="#status" title="Permalink to this headline">¶</a></h2>
+<p>Retrieve status information about a (current or ended) simulation. Particularly useful for
+retrieving status or error messages that span multiple lines and cannot be fully displayed
+by <code class="docutils literal"><span class="pre">glot</span> <span class="pre">search</span></code> or <code class="docutils literal"><span class="pre">glot</span> <span class="pre">table</span></code>.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot status GUID
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>GUID</td>
+<td>(prefix of or) GUID to cancel on server. Must be unique</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="diagnostic">
+<h2>Diagnostic<a class="headerlink" href="#diagnostic" title="Permalink to this headline">¶</a></h2>
+<p>Retrieve diagnostic output of a (successful or) failed simulation. This includes log output to
+STDERR/STDOUT, any input and any settings files supplied by Glossia to the container. Glossia
+stores the UUID of container image used for simulation within the diagnostic data.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot diagnostic <span class="o">[</span>--target TARGET<span class="o">]</span> <span class="o">[</span>--inspect/-i<span class="o">]</span> GUID
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>GUID</td>
+<td>(prefix of or) GUID to cancel on server. Must be unique</td>
+</tr>
+<tr class="row-odd"><td>&#8211;target TARGET</td>
+<td>server for Glossia to push output bundles to using HTTP
+POST commands (on port 18103). By default, Glot will
+start an HTTP server and Glossia will look for it on the
+network gateway IP</td>
+</tr>
+<tr class="row-even"><td>&#8211;inspect</td>
+<td>combine this command with the <code class="docutils literal"><span class="pre">inspect</span></code> command to
+achieve a ready-to-run simulation in the ./UUID/
+directory</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="launch">
+<h2>Launch<a class="headerlink" href="#launch" title="Permalink to this headline">¶</a></h2>
+<p>Launch a new simulation.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot launch <span class="o">[</span>--tmp-directory TMPDIR<span class="o">]</span> <span class="o">[</span>--input/-i INPUT1 -i INPUT2 ...<span class="o">]</span>
+        <span class="o">[</span>--definition/-d DEF1 -d DEF2 ...<span class="o">]</span> GSSAXML
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>GSSAXML</td>
+<td>A file containing GSSA-XML defining the simulation
+(this is <em>original.xml</em> in diagnostic output)</td>
+</tr>
+<tr class="row-odd"><td>&#8211;tmp-directory TMPDIR</td>
+<td>directory to use for exchanging files with Glossia
+(default: /tmp)</td>
+</tr>
+<tr class="row-even"><td>&#8211;input INPUTN</td>
+<td>(with multiplicity) files that are referenced with the
+GSSA-XML and are expected in the input/ subfolder of the
+simulation directory</td>
+</tr>
+<tr class="row-odd"><td>&#8211;definition DEFN</td>
+<td>(with multiplicity) files that constitute the internal
+configuration. This corresponds to the content of the
+numerical model in the Go-Smart CDM framework. For
+instance, a Jinja2 SIF file for Goosefoot or a Python
+script and custom modules for a FEniCS simulation.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="inspect">
+<h2>Inspect<a class="headerlink" href="#inspect" title="Permalink to this headline">¶</a></h2>
+<p>Take a diagnostic bundle and prepare it to be run as a new simulation locally (without Glossia,
+but using a simulation container). This allows precise reproduction of the remote behaviour
+(with certain standard Docker caveats, regarding kernel versions, etc.). To do so, it untars
+the diagnostic bundle, and clones a remote repository containing tools to execute the simulation.
+For more information on executing standalone simulations, see the individual mode repositories.</p>
+<dl class="docutils">
+<dt>Modes:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>goosefoot</dt>
+<dd><ul class="first last simple">
+<li>&lt;<a class="reference external" href="https://github.com/go-smart/glossia-container-goosefoot-control">https://github.com/go-smart/glossia-container-goosefoot-control</a>&gt;</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>fenics (not yet incorporated into glot)</dt>
+<dd><ul class="first last simple">
+<li>&lt;<a class="reference external" href="https://github.com/go-smart/glossia-container-fenics-control">https://github.com/go-smart/glossia-container-fenics-control</a>&gt;</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>glot inspect <span class="o">[</span>--mode MODE<span class="o">]</span> ARCHIVE
+</pre></div>
+</div>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument / Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>ARCHIVE</td>
+<td>bundle retrieved by <code class="docutils literal"><span class="pre">glot</span> <span class="pre">diagnostic</span></code>, as TGZ</td>
+</tr>
+<tr class="row-odd"><td>&#8211;mode</td>
+<td>type of setup that should be used (corresponds to a
+tool repository to clone into the diagnostic data).
+At present the only valid mode is &#8216;goosefoot&#8217; (default)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Commands</a><ul>
+<li><a class="reference internal" href="#search">Search</a></li>
+<li><a class="reference internal" href="#table">Table</a></li>
+<li><a class="reference internal" href="#results">Results</a></li>
+<li><a class="reference internal" href="#cancel">Cancel</a></li>
+<li><a class="reference internal" href="#status">Status</a></li>
+<li><a class="reference internal" href="#diagnostic">Diagnostic</a></li>
+<li><a class="reference internal" href="#launch">Launch</a></li>
+<li><a class="reference internal" href="#inspect">Inspect</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="usage.html"
+                        title="previous chapter">Usage</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/commands.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Glot 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Phil Weir.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+  </body>
+</html>

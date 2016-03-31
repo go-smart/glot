@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Usage &mdash; Glot 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Glot 0.2 documentation" href="index.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Glot 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<p>The following assumes a Glossia server is running and connected to
+a WAMP router (e.g. Crossbar.io). Unless stated otherwise, it will
+be assumed that both are running in containers on the local system,
+this being the default setup when using the
+<a class="reference external" href="https://go-smart.github.io/glossia/introduction/quickstart">Glossia Quickstart</a>
+approach.</p>
+<p>Unlike a number of other Glossia tools, which must interact with the
+Docker daemon directly, glot should not have superuser access, and should be
+run as an unprivileged user.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>glot [--server SERVERNAME] [--router ROUTERIP] [--port ROUTERPORT]
+    [--to TO] [--force] [--debug] [--verbose] [--color/no-color]
+    [--help] COMMAND COMMANDARGS
+</pre></div>
+</div>
+<div class="section" id="positional-arguments">
+<h2>Positional arguments<a class="headerlink" href="#positional-arguments" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="84%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>COMMMAND</td>
+<td>A specific task, perhaps with arguments. See
+&lt;commands&gt; for details of available commands.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="optional-arguments">
+<h2>Optional arguments<a class="headerlink" href="#optional-arguments" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="62%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>-h, &#8211;help</td>
+<td>show this help message and exit</td>
+</tr>
+<tr class="row-odd"><td>&#8211;server SERVERNAME</td>
+<td>target Glossia server on router (default: default)</td>
+</tr>
+<tr class="row-even"><td>&#8211;router ROUTERIP</td>
+<td>location of the WAMP router (default: localhost)</td>
+</tr>
+<tr class="row-odd"><td>&#8211;port ROUTERPORT</td>
+<td>WebSocket port on router to connect to (default: 8080)</td>
+</tr>
+<tr class="row-even"><td>&#8211;to TO</td>
+<td>explicit destination directory for output, if applicable</td>
+</tr>
+<tr class="row-odd"><td>&#8211;force</td>
+<td>overwrite existing output if necessary</td>
+</tr>
+<tr class="row-even"><td>&#8211;debug</td>
+<td>enable additional debug output (mostly technical)</td>
+</tr>
+<tr class="row-odd"><td>&#8211;verbose</td>
+<td>provide additional user-relevant output</td>
+</tr>
+<tr class="row-even"><td>&#8211;color/no-color</td>
+<td>use ANSI colours in output, if applicable (default: yes)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#positional-arguments">Positional arguments</a></li>
+<li><a class="reference internal" href="#optional-arguments">Optional arguments</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/usage.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Glot 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Phil Weir.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
+    </div>
+  </body>
+</html>
