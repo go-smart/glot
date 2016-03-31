@@ -15,12 +15,12 @@ Dependencies
 ------------
 
 * Python3
-** aiohttp
-** Click
-** gitpython
-** tabulate
-** colorama
-** setuptools
+  * aiohttp
+  * Click
+  * gitpython
+  * tabulate
+  * colorama
+  * setuptools
 * pip3 (for one-line installation)
 
 
