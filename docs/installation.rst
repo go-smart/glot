@@ -4,7 +4,7 @@ Installation
 Source
 ------
 
-Glot's repository is at https://github.com/go-smart/glossia.
+Glot's repository is at https://github.com/go-smart/glot.
 
 Dependencies
 ------------
