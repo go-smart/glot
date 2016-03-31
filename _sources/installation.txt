@@ -4,7 +4,7 @@ Installation
 Source
 ------
 
-Glot's repository is at <https://github.com/go-smart/glossia>.
+Glot's repository is at https://github.com/go-smart/glossia.
 
 Dependencies
 ------------
@@ -28,13 +28,13 @@ Installation
 
 Directly from the repository (recommended):
 
-.. code-block bash
+.. code-block:: bash
 
     pip3 install git+git://github.com/go-smart/glot.git@master
 
 From local source:
 
-.. code-block bash
+.. code-block:: bash
 
     git clone https://github.com/go-smart/glot.git
     cd glot

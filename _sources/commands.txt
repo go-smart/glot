@@ -3,7 +3,7 @@ Commands
 
 Glot has a number of commands that allow it to act as a complete
 client for Glossia. These should be included as described in
-<usage>, bearing in mind that global arguments, preceding the
+`Usage <usage.html>`_, bearing in mind that global arguments, preceding the
 command, may or may not modify behaviour
 (e.g. ``--to`` is relevant only for commands retrieving files
 from the Glossia server).
@@ -13,9 +13,9 @@ The most commonly used commands are likely to be:
 -  ``glot table``
 -  ``glot results -i UUID`` (successful simulations)
 -  ``glot diagnostic -i UUID`` (failed simulations)
--  | ``glot diagnostic -d UUID``
-   | Transfer ``UUID-results.tgz``
-   | ``glot inspect UUID-results.tgz`` (remote Glossia)
+-  | ``glot diagnostic -d UUID`` (on remote host)
+   | Transfer ``UUID-results.tgz`` to local machine
+   | ``glot inspect UUID-results.tgz`` (local machine)
 
 In general, UUIDs may be given only as the first few characters,
 provided that this specifies them uniquely on the server.
@@ -27,7 +27,7 @@ Search UUID or UUIDs matching a given prefix. Prints a table
 showing most recent status of matching simulations on the
 Glossia server.
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot search [--limit LIMIT] [--server-limit SERVERLIMIT]
         [--sort SORT] [GUID]
@@ -52,7 +52,7 @@ Table
 Show a table of simulations. Slightly prettier, more intuitive alternative to using
 ``glot search`` with no arguments.
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot table [--limit LIMIT] [--server-limit SERVERLIMIT] [--sort SORT]
 
@@ -76,7 +76,7 @@ has no access to, only output that has been returned from simulation container. 
 inspection, this is most useful
 in conjunction with the ``-i`` or ``-d`` flags, which bundle diagnostic output.
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot results [--target TARGET] ([--include-diagnostic/-d] | [--inspect-diagnostic/-i]) GUID
 
@@ -104,7 +104,7 @@ Cancel
 Interrupt a running simulation. Will raise an ``E_CANCELLED`` error on Glossia
 (`more information <https://go-smart.github.io/glossia/reference/errors>`_).
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot cancel GUID
 
@@ -121,7 +121,7 @@ Retrieve status information about a (current or ended) simulation. Particularly 
 retrieving status or error messages that span multiple lines and cannot be fully displayed
 by ``glot search`` or ``glot table``.
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot status GUID
 
@@ -138,7 +138,7 @@ Retrieve diagnostic output of a (successful or) failed simulation. This includes
 STDERR/STDOUT, any input and any settings files supplied by Glossia to the container. Glossia
 stores the UUID of container image used for simulation within the diagnostic data.
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot diagnostic [--target TARGET] [--inspect/-i] GUID
 
@@ -162,7 +162,7 @@ Launch
 
 Launch a new simulation.
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot launch [--tmp-directory TMPDIR] [--input/-i INPUT1 -i INPUT2 ...]
             [--definition/-d DEF1 -d DEF2 ...] GSSAXML
@@ -198,11 +198,11 @@ For more information on executing standalone simulations, see the individual mod
 
 Modes:
     - goosefoot
-        - <https://github.com/go-smart/glossia-container-goosefoot-control>
+        - https://github.com/go-smart/glossia-container-goosefoot-control
     - fenics (not yet incorporated into glot)
-        - <https://github.com/go-smart/glossia-container-fenics-control>
+        - https://github.com/go-smart/glossia-container-fenics-control
 
-.. code-block :: bash
+.. code-block:: bash
 
     glot inspect [--mode MODE] ARCHIVE
 

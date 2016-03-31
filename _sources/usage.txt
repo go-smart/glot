@@ -24,8 +24,9 @@ Positional arguments
 +------------+-------------------------------------------------------------+
 | Argument   | Description                                                 |
 +============+=============================================================+
-| COMMMAND   | A specific task, perhaps with arguments. See                |
-|            | <commands> for details of available commands.               |
+| COMMAND    | A specific task, perhaps with arguments. See                |
+|            | `Commands <commands.html>`_ for details of available        |
+|            | commands.                                                   |
 +------------+-------------------------------------------------------------+
 
 Optional arguments
