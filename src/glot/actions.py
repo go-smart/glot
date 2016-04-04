@@ -13,7 +13,14 @@ import uuid
 
 import glot.transfer
 
+try:
+    from glossia.comparator.parse import gssa_xml_to_definition
+except:
+    print("WARNING: could not import glossia.comparator - functionality may be limited")
+    gssa_xml_to_definition = None
+
 _repo_locations = {
+    'fenics': 'https://github.com/go-smart/glossia-container-fenics-control',
     'goosefoot': 'https://github.com/go-smart/glossia-container-goosefoot-control'
 }
 
@@ -321,10 +328,6 @@ class GlotActor:
         rootpath = path
         log.debug("Extracting to {path}".format(path=path))
 
-        repo_location = _repo_locations[mode]
-        log.debug("Cloning control from {loc}".format(loc=repo_location))
-        Repo.clone_from(repo_location, path)
-
         log.debug("Opening diagnostic archive {arc}".format(arc=archive))
         with tarfile.open(archive, 'r') as t:
             members = t.getmembers()
@@ -341,7 +344,7 @@ class GlotActor:
                     t.getmember(inpfinal)
                 except KeyError:
                     path = os.path.join(path, 'input')
-                    os.makedirs(path)
+            os.makedirs(path, exist_ok=True)
 
             for m in members:
                 if m.name.startswith(prefix):
@@ -358,6 +361,27 @@ class GlotActor:
                             shutil.copyfileobj(g, f)
 
         log.info("Done extracting")
+
+        repo_location = _repo_locations[mode]
+
+        if gssa_xml_to_definition:
+            try:
+                with open(os.path.join(rootpath, 'original.xml'), 'r') as f:
+                    root = lxml.etree.parse(f)
+                definition = gssa_xml_to_definition(root)
+                family = definition.get_family()
+            except:
+                log.warn("Could not parse original.xml to find family")
+            else:
+                if family in _repo_locations:
+                    repo_location = _repo_locations[family]
+                else:
+                    log.warn("Could not find family (%s) in known utilities" % family)
+        else:
+            log.warn("No gssa_xml_to_definition function (glossia.comparator) so using given 'mode'")
+
+        log.debug("Cloning control from {loc}".format(loc=repo_location))
+        Repo.clone_from(repo_location, path)
 
         if mode is 'goosefoot':
             shutil.copyfile(
