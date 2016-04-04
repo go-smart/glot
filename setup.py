@@ -20,6 +20,7 @@ setup(
         'Click',
         'gitpython',
         'tabulate',
-        'colorama'
+        'colorama',
+        'glossia.comparator'
     ]
 )

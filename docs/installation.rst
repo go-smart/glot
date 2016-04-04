@@ -16,10 +16,17 @@ Dependencies
       - tabulate
       - colorama
       - setuptools
+      - glossia.comparator
 - pip3 (for one-line installation)
 
-Note that, if using *pip*, these dependencies should be installed
-automatically. They should only be installed separately if you want
+glossia.comparator must be installed separately:
+
+.. code-block:: bash
+
+    pip3 install git+git://github.com/go-smart/glossia-comparator.git@master
+
+If using *pip*, these remaining dependencies should be installed
+automatically when installing glot. They should only be installed separately if you want
 to use your operating system's distribution packages, or need specific
 versions for compatibility with other tools.
 

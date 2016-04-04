@@ -32,6 +32,21 @@ class GlotActor:
         self._mc = mc
 
     @asyncio.coroutine
+    def logs(self, guid, stdout):
+        log = self._log
+        mc = self._mc
+
+        handle = 'stdout' if stdout else 'stderr'
+        logs = yield from mc('logs', guid.upper(), handle)
+
+        log.debug('Returned from logs call')
+
+        if logs:
+            print(logs[handle])
+        else:
+            print("No logs could be retrieved")
+
+    @asyncio.coroutine
     def cancel(self, guid):
         log = self._log
         mc = self._mc
@@ -156,7 +171,7 @@ class GlotActor:
         destination = self._destination
 
         if include_diagnostic:
-            yield from self._diagnostic(guid, target, inspect_diagnostic)
+            yield from self.diagnostic(guid, target, inspect_diagnostic)
 
         if not target and inspect_diagnostic:
             os.makedirs(destination, exist_ok=True)
@@ -274,7 +289,7 @@ class GlotActor:
                 prefix = os.path.commonprefix(names)
 
             log.debug("Inspecting %s" % filename)
-            self._inspect(filename, destination=os.path.join(to, prefix) if to else None)
+            self.inspect(filename, destination=os.path.join(to, prefix) if to else None)
 
         return filename
 

@@ -114,6 +114,24 @@ Interrupt a running simulation. Will raise an ``E_CANCELLED`` error on Glossia
 | GUID                               | (prefix of or) GUID to cancel on server. Must be unique  |
 +------------------------------------+----------------------------------------------------------+
 
+Logs
+------
+
+Send container logs (not filesystem logs) from a simulation to the terminal. This corresponds
+to *jobs.out* and *jobs.err* in the diagnostic output.
+
+.. code-block:: bash
+
+    glot logs [--stdout] GUID
+
++------------------------------------+----------------------------------------------------------+
+| Argument / Option                  | Description                                              |
++====================================+==========================================================+
+| GUID                               | (prefix of or) GUID to cancel on server. Must be unique  |
++------------------------------------+----------------------------------------------------------+
+| --stdout                           | request container's STDOUT, not STDERR (default: STDERR) |
++------------------------------------+----------------------------------------------------------+
+
 Status
 ------
 

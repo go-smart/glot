@@ -63,6 +63,18 @@ def cli(ctx, server, router, port, to, force, debug, color, verbose):
 
 
 @cli.command()
+@click.option('--stdout', is_flag=True)
+@click.argument('guid', default='')
+@click.pass_context
+@execute_command
+@asyncio.coroutine
+def logs(actor, guid, stdout):
+    """Check for definitions match GUID (prefix)"""
+
+    yield from actor.logs(guid, stdout)
+
+
+@cli.command()
 @click.option('--limit', default=10)
 @click.option('--server-limit', default=1000)
 @click.option('--sort', default='timestamp')
@@ -73,7 +85,7 @@ def cli(ctx, server, router, port, to, force, debug, color, verbose):
 def search(actor, limit, server_limit, sort, guid):
     """Check for definitions match GUID (prefix)"""
 
-    yield from actor._search(limit, server_limit, sort, guid)
+    yield from actor.search(limit, server_limit, sort, guid)
 
 
 @cli.command()
