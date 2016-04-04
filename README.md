@@ -1,7 +1,7 @@
 Glot
 ====
-The Go-Smart Simulation Architecture
--------------------------------------------
+Go-Smart Glossia Simulation Architecture
+----------------------------------------
 
 **Primary authors** : [NUMA Engineering Services Ltd](http://www.numa.ie) (NUMA), Dundalk, Ireland
 
@@ -14,16 +14,24 @@ This tool provides CLI tools for managing or interacting with Glossia tools via 
 Dependencies
 ------------
 
-* Python 3
-* Pip3
-  * click
+* Python3
+  * aiohttp
+  * Click
+  * gitpython
+  * tabulate
+  * colorama
+  * setuptools
+* pip3 (for one-line installation)
+
 
 Documentation
 -------------
 
-Documentation for this component is available at https://go-smart.github.io/gssa
+Documentation for this component is available at https://go-smart.github.io/glot
 
-Installation
-------------
+Quick Installation
+------------------
 
-CMake installation is recommended from an out-of-source build directory.
+See the documentation for fuller details
+.
+    python3 setup.py install
