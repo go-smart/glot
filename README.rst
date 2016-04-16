@@ -14,13 +14,15 @@ This tool provides CLI tools for managing or interacting with Glossia tools via 
 Dependencies
 ------------
 
+glot has the following dependencies:
+
 * Python3
-  * aiohttp
-  * Click
-  * gitpython
-  * tabulate
-  * colorama
-  * setuptools
+   * aiohttp
+   * Click
+   * gitpython
+   * tabulate
+   * colorama
+   * setuptools
 * pip3 (for one-line installation)
 
 
@@ -32,6 +34,6 @@ Documentation for this component is available at https://go-smart.github.io/glot
 Quick Installation
 ------------------
 
-See the documentation for fuller details
-.
+See the documentation for fuller details. In summary, installation is as standard:
+
     python3 setup.py install
