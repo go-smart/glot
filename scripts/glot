@@ -169,11 +169,31 @@ def launch(actor, gssa_xml, tmp_subdirectory, tmp_directory, input, definition):
 @click.option('--mode', default='elmer-libnuma')
 @click.argument('archive')
 @click.pass_context
-def inspect(ctx, archive, mode='elmer-libnuma'):
+def inspect(ctx, archive, mode):
     """Examine a diagnostic bundle"""
 
-    actor = ctx['ACTOR']
+    actor = ctx.obj['ACTOR']
+
+    if not actor.has_log():
+        actor.set_log(txaio.make_logger())
+
     actor.inspect(archive, mode)
+
+
+@cli.command()
+@click.option('--mode', default='elmer-libnuma')
+@click.argument('path', default='.', nargs=1)
+@click.argument('definition', nargs=-1)
+@click.pass_context
+def setup(ctx, path, mode, definition):
+    """Prepare a local directory for running a simulation."""
+
+    actor = ctx.obj['ACTOR']
+
+    if not actor.has_log():
+        actor.set_log(txaio.make_logger())
+
+    actor.setup(path, mode, definition=definition)
 
 
 if __name__ == '__main__':

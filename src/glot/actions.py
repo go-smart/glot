@@ -27,12 +27,17 @@ _repo_locations = {
 
 
 class GlotActor:
+    _log = None
+
     def __init__(self, verbose, force, destination, color, debug):
         self._verbose = verbose
         self._force = force
         self._destination = destination
         self._color = color
         self._debug = debug
+
+    def has_log(self):
+        return self._log is not None
 
     def set_log(self, log):
         self._log = log
@@ -364,6 +369,28 @@ class GlotActor:
 
         log.info("Done extracting")
 
+        self.run(path, mode, rootpath)
+
+    def setup(self, path='.', mode='elmer-libnuma', rootpath=None, definition=()):
+        log = self._log
+        force = self._force
+
+        if definition:
+            if os.path.exists('input/start.tar.gz'):
+                if force:
+                    os.unlink('input/start.tar.gz')
+                else:
+                    raise RuntimeError("Start archive is already present")
+
+            definition = [os.path.abspath(d) for d in definition]
+            prefix = os.path.dirname(os.path.commonprefix(definition))
+            with tarfile.open('input/start.tar.gz', 'w:gz') as t:
+                for definition_file in definition:
+                    t.add(definition_file, definition_file[len(prefix):])
+
+        if rootpath is None:
+            rootpath = path
+
         repo_location = _repo_locations[mode]
 
         if gssa_xml_to_definition:
@@ -377,6 +404,7 @@ class GlotActor:
                 log.warn("Could not parse original.xml to find family")
             else:
                 if family in _repo_locations:
+                    log.debug("Found family in repository locations: %s" % family)
                     repo_location = _repo_locations[family]
                 else:
                     log.warn("Could not find family (%s) in known utilities" % family)
@@ -385,11 +413,27 @@ class GlotActor:
             family = mode
 
         log.debug("Cloning control from {loc}".format(loc=repo_location))
+
         repo_target = os.path.join(path, '.repo')
+        if os.path.exists(repo_target):
+            shutil.rmtree(repo_target)
+
         Repo.clone_from(repo_location, repo_target)
         for f in os.listdir(repo_target):
+            if f.startswith('.'):
+                continue
+
             fm = os.path.join(repo_target, f)
+
             to = os.path.join(path, f)
+            if os.path.exists(to):
+                if force:
+                    if os.path.isdir(to):
+                        shutil.rmtree(to)
+                    else:
+                        os.unlink(to)
+                else:
+                    raise RuntimeError("Utility files already exist - clear manually or force")
 
             if os.path.isdir(fm):
                 shutil.copytree(fm, to)

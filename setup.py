@@ -18,10 +18,11 @@ setup(
     install_requires=[
         'aiohttp',
         'txaio',
-        'Click',
+        'Click>=6.0',
         'gitpython',
         'tabulate',
         'colorama',
-        'glossia.comparator'
+        'glossia.comparator',
+        'docker-compose>=1.5'
     ]
 )
