@@ -1,4 +1,5 @@
 import datetime
+import traceback
 import tabulate
 import colorama as C
 import asyncio
@@ -21,16 +22,17 @@ except:
 
 _repo_locations = {
     'fenics': 'https://github.com/go-smart/glossia-container-fenics-control',
-    'goosefoot': 'https://github.com/go-smart/glossia-container-goosefoot-control'
+    'elmer-libnuma': 'https://github.com/go-smart/glossia-container-goosefoot-control'
 }
 
 
 class GlotActor:
-    def __init__(self, verbose, force, destination, color):
+    def __init__(self, verbose, force, destination, color, debug):
         self._verbose = verbose
         self._force = force
         self._destination = destination
         self._color = color
+        self._debug = debug
 
     def set_log(self, log):
         self._log = log
@@ -300,7 +302,7 @@ class GlotActor:
 
         return filename
 
-    def inspect(self, archive, destination=None, mode='goosefoot'):
+    def inspect(self, archive, destination=None, mode='elmer-libnuma'):
         log = self._log
         verbose = self._verbose
         force = self._force
@@ -367,10 +369,11 @@ class GlotActor:
         if gssa_xml_to_definition:
             try:
                 with open(os.path.join(rootpath, 'original.xml'), 'r') as f:
-                    root = lxml.etree.parse(f)
-                definition = gssa_xml_to_definition(root)
+                    tree = lxml.etree.parse(f)
+                definition = gssa_xml_to_definition(tree.getroot())
                 family = definition.get_family()
             except:
+                traceback.print_exc()
                 log.warn("Could not parse original.xml to find family")
             else:
                 if family in _repo_locations:
@@ -379,11 +382,21 @@ class GlotActor:
                     log.warn("Could not find family (%s) in known utilities" % family)
         else:
             log.warn("No gssa_xml_to_definition function (glossia.comparator) so using given 'mode'")
+            family = mode
 
         log.debug("Cloning control from {loc}".format(loc=repo_location))
-        Repo.clone_from(repo_location, path)
+        repo_target = os.path.join(path, '.repo')
+        Repo.clone_from(repo_location, repo_target)
+        for f in os.listdir(repo_target):
+            fm = os.path.join(repo_target, f)
+            to = os.path.join(path, f)
 
-        if mode is 'goosefoot':
+            if os.path.isdir(fm):
+                shutil.copytree(fm, to)
+            else:
+                shutil.copy(fm, to)
+
+        if family == 'elmer-libnuma':
             shutil.copyfile(
                 os.path.join(rootpath, 'input', 'settings.xml'),
                 os.path.join(rootpath, 'settings', 'settings.xml')

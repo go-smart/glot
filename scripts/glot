@@ -54,7 +54,7 @@ def cli(ctx, server, router, port, to, force, debug, color, verbose):
     """Manage Glossia from the CLI"""
     ctx.obj['SERVER'] = (server, router, port)
     ctx.obj['DEBUG'] = debug
-    ctx.obj['ACTOR'] = actions.GlotActor(verbose, force, to, color)
+    ctx.obj['ACTOR'] = actions.GlotActor(verbose, force, to, color, debug)
 
     if debug:
         txaio.start_logging(level='trace')
@@ -166,10 +166,10 @@ def launch(actor, gssa_xml, tmp_subdirectory, tmp_directory, input, definition):
 
 
 @cli.command()
-@click.option('--mode', default='goosefoot')
+@click.option('--mode', default='elmer-libnuma')
 @click.argument('archive')
 @click.pass_context
-def inspect(ctx, archive, mode='goosefoot'):
+def inspect(ctx, archive, mode='elmer-libnuma'):
     """Examine a diagnostic bundle"""
 
     actor = ctx['ACTOR']
