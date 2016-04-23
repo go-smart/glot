@@ -369,7 +369,7 @@ class GlotActor:
 
         log.info("Done extracting")
 
-        self.run(path, mode, rootpath)
+        self.setup(path, mode, rootpath)
 
     def setup(self, path='.', mode='elmer-libnuma', rootpath=None, definition=()):
         log = self._log
