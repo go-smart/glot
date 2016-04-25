@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='glot',
-    version='0.1.4',
+    version='0.1.5',
     packages=['glot'],
     package_dir={'glot': 'src/glot'},
 
