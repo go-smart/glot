@@ -10,6 +10,7 @@ import shutil
 import lxml.etree
 import tempfile
 import stat
+import yaml
 import uuid
 
 import glot.transfer
@@ -399,15 +400,27 @@ class GlotActor:
                     tree = lxml.etree.parse(f)
                 definition = gssa_xml_to_definition(tree.getroot())
                 family = definition.get_family()
-            except:
+            except Exception as e:
                 traceback.print_exc()
                 log.warn("Could not parse original.xml to find family")
+                raise e
             else:
                 if family in _repo_locations:
                     log.debug("Found family in repository locations: %s" % family)
                     repo_location = _repo_locations[family]
                 else:
                     log.warn("Could not find family (%s) in known utilities" % family)
+
+            configuration_yamls = [
+                ('parameters.yml', definition.get_parameters_dict(), yaml.dump),
+                ('needle_parameters.yml', definition.get_needle_dicts(), yaml.dump_all),
+                ('regions.yml', definition.get_regions_dict(), yaml.dump)
+            ]
+
+            for filename, obj, dump in configuration_yamls:
+                if not os.path.exists(filename):
+                    with open(os.path.join(rootpath, 'input', filename), 'w') as pf:
+                        dump(obj, pf, default_flow_style=False)
         else:
             log.warn("No gssa_xml_to_definition function (glossia.comparator) so using given 'mode'")
             family = mode
