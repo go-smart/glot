@@ -155,7 +155,7 @@ def diagnostic(actor, guid, target, inspect):
 @click.option('--tmp-directory', default='/tmp/gssa-transferrer', help="location of the mounted transferrer directory")
 @click.option('--input', '-i', multiple=True, help="input files for surfaces, etc.")
 @click.argument('gssa-xml', default='original.xml', nargs=1)
-@click.argument('definition', nargs=-1, help="file(s) containing module / text of the definition node (which should exist but be empty in the GSSA file)")
+@click.argument('definition', nargs=-1)
 @click.pass_context
 @execute_command
 @asyncio.coroutine
